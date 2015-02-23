@@ -1,0 +1,211 @@
+---------------------001----------FIXED----------------------
+        sh-2.05b$ export MRMC="../../../bin/mrmc"
+        sh-2.05b$ export TEST_NAME="csrl_discretiz_state_02"
+        sh-2.05b$ ${MRMC} csrl ${TEST_NAME}.tra ${TEST_NAME}.lab ${TEST_NAME}.rew
+        Running in the CSRL model checking mode.
+        States=5, Transitions=14
+        Space Occupied:: 712 Bytes.
+        Type 'help' to get help.
+        >>set d 0.03125
+        >>P{>0.1}[ a U[0,25] tt ]
+>>>     Overflow
+        time to compute: 40 micro sec(s)
+        Result: ( 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00 )
+        states = {}
+
+        >>P{>0.1}[ a U[0,25][0,110] tt ]
+>>>>    Segmentation fault
+
+---------------------002------NOT A BUG-----------------
+In test/functional_tests/pctl_andova_state_01 test case we are getting for
+  
+        P{>0.1}[ tt U[0,10][0,9] sd ]
+
+the following probabilities
+
+        Result: ( 1.660156250000000e-01, 0.0e+00, 3.320312500000000e-01, 0.0e+00, 0.0e+00,
+                   0.0e+00, 6.660156250000000e-01, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 1.0e+00 )
+        states = {1, 3, 7, 13, }
+
+This is just wrong because staying in 13 for 10 time units will give you reward equal to
+10 which is greater than 9!
+
+The problem is in the "transient.c" file in the method:
+
+double * dtmrm_bounded_until(bitset *phi, bitset *psi, float subi, float supi, float subj, float supj)
+
+There
+
+        //ERROR: This is totally wrong ! what if the node has a self loop !?
+        //       or phi is valid here and we can go further to another psi node!?
+        if( get1b.b &&
+            ( subi <= 0 ) && ( supi >= 0 ) &&
+            ( subj <= 0 ) && ( supj >= 0 ) )
+        {
+                result[i]=1.0;
+                continue;
+        }
+
+---------------------003--------NOT A BUG------------------------
+Some problems with iterative methods, like Gauss-Seidel and Gauss-Jacobi
+
+See test/functional_tests/csl_steady_state_03/csl_steady_state_03.info for
+more information.
+
+---------------------004---------FIXED-----------------------
+Test cases
+    test/functional_tests/csl_steady_state_02
+    test/functional_tests/csl_steady_state_03
+    
+PASS when MRMC is compiled with "-O0 -ggdb" options and FAIL if with "-O3"
+
+---------------------005--------NOT A BUG------------------------
+In example test/functional_tests/csl_steady_state_02
+steady state probabilities for S{>0.1}[ a5 ] and S{>0.1}[ a6 ] are interchanged comparing to ETMCC 1.0 and PRISM 2.1.
+NOTE: It is strange but steady state probabilities computed with Gauss-Seidel and Gauss-Jacobi interchange in
+ETMCC 1.0 and PRISM 2.1 !!!! In our implementation we have smth like in PRISM 2.1 (see bug 003)
+
+SOLUTIONS: Here the problem is that Inverted Jacobi does not converge having initial vector & matrix:
+
+(1/3,1/3,1/3),  |-1  1  0|
+                | 0 -1  1| 
+                | 2  0 -2|
+
+iterations give:
+0: (1/3,1/3,1/3)
+1: (2/3,1/3,1/6)
+2: (1/3,2/3,1/6)
+3: (1/3,1/3,1/3)
+4:     ....
+So depending on what iteration we stop we have alternation for 1 & 2 state probabilities: 1/3 and 2/3
+
+---------------------006---------PARTIALLY FIXED-----------------------
+In test/functional_tests/tests csl_bounded_until_01 - test/functional_tests/csl_bounded_until_04
+values that are close to 1.0 should be actually 1.0 as I see it. They are within error bound but
+still ... Check it out ...
+
+---------------------007-------FIXED-------------------------
+In tests test/functional_tests/csl_bounded_until_01 - test/functional_tests/csl_bounded_until_0 for
+P{<0.1}[ tt U[0,0] a4 ] we get
+   Result: ( 1.0e+00, 1.0e+00, 1.0e+00, 1.0e+00 )
+But it should be 
+   Result: ( 0.0e+00, 0.0e+00, 0.0e+00, 1.0e+00 )
+
+NOTE: In case the time bound is set to [0,0] we expect it to be an unbounded until.
+
+---------------------008-------FIXED-------------------------
+In the test test/functional_tests/csl_interval_until_01 the formula results were wrong.
+I.e. the computations for interval until for CSL were not quite correct.
+
+---------------------009-------FIXED-------------------------
+In the test test/functional_tests/csl_next_01 the repeat model checking of the same Next
+formula was giving different results. Which were becoming wrong after the first model checking.
+
+--------------------010--------NOT A BUG------------------
+A segmentation fault on Hubble!
+
+54:)ewi410:examples/hubble/> ../../bin/mrmc csl hubble_mrmc.tra hubble.lab
+ ----------------------------------------------------------------
+|                The Markov Reward Model Checker                 |
+|                     MRMC version 1.1 beta                      |
+|        Copyright (C) The University of Twente, 2004-2006.      |
+|                           Authors:                             |
+| Joost-Pieter Katoen, Maneesh Khattri, Ivan Zapreev, Tim Kemna  |
+|         MRMC is distributed under the GPL conditions           |
+|         (GPL states for GNU General Public License)            |
+|         The product comes with ABSOLUTELY NO WARRANTY.         |
+| This is free software, and you are welcome to redistribute it. |
+ ----------------------------------------------------------------
+Running in the CSL model checking mode.
+States=9, Transitions=12
+Space Occupied:: 1192 Bytes.
+Type 'help' to get help.
+>>P{<=0.00001}[ tt U[0,5] (!sleep && P{>0}[ X sleep ]) ]
+Result: ( 9.990009990009990e-01, 9.980039920159680e-01, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 3.846153846153846e-02, 0.0e+00, 0.0e+00 )
+WARNING: Fox-Glynn: lambda >= 25, underflow
+Fox-Glynn: ltp = 0, rtp = 174, w = 1.445787649579738e+297
+time to compute: 115 micro sec(s)
+Result: ( 9.999999999999657e-01, 9.999999999999657e-01, 7.768698398515705e-01, 5.134852091161191e-01, 3.062176553214995e-01, 1.702952758972573e-01, 1.544776216396155e-01, 1.518318677081869e-01, 0.0e+00 )
+states = {9, }
+>>P{<=0.00001}[ tt U[3,5] (!sleep && P{>0}[ X sleep ]) ]
+Result: ( 9.990009990009990e-01, 9.980039920159680e-01, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 3.846153846153846e-02, 0.0e+00, 0.0e+00 )
+Fox-Glynn: ltp = 0, rtp = 155, w = 1.020733056104208e+297
+Fox-Glynn: ltp = 213, rtp = 446, w = 3.369364373300323e+297
+time to compute: 242 micro sec(s)
+Result: ( 1.180259351234048e-01, 1.202531366124285e-01, 2.238533664092235e-01, 2.497979268301891e-01, 1.974266587743068e-01, 1.292401046216027e-01, 1.206819723917728e-01, 1.185597291718511e-01, 0.0e+00 )
+states = {9, }
+>>set error_bound 1.0E-10
+states = {}
+>>P{<=0.00001}[ tt U[0,5] (!sleep && P{>0}[ X sleep ]) ]
+Result: ( 9.990009990009991e-01, 9.980039920159681e-01, 0.0e+00, 0.0e+00, 0.0e+00, 0.0e+00, 3.846153846153847e-02, 0.0e+00, 0.0e+00 )
+WARNING: Fox-Glynn: lambda >= 25, underflow
+Segmentation fault
+
+Sometimes you have to check for "P{<=0.00001}[ tt U[3,5] (!sleep && P{>0}[ X sleep ]) ]" also to get the "segmentation fault" error.
+
+----
+This happens due to the incorrect format of the .tra file For example if someone puts an empty line after the header of the .tra file
+
+---------------------011-------FIXED-------------------------
+DATE: 04.12.2006
+
+MRMC crashes in case of the syntax error in the formula.
+
+---------------------012-------FIXED-------------------------
+DATE: 26.12.2006
+
+In case of syntax error parser in MRMC has memory leakages because
+the computed bitsets and other results of sub-formulas are lost.
+
+---------------------012-------FIXED-------------------------
+DATE: 27.12.2006
+
+In some cases while doing performance testing multiple copies of MRMC are running.
+The reason is in the ./test/performance_tests/lumping/scripts/shell/test_suite.sh
+
+---------------------013--------------------------------
+DATE: 27.12.2006
+
+CSRL, Time- and Reward- bounded until operator, Qureshi Sanders algorithm: We get different results if state space is reordered, in particular this affects the formula dependent (independent) lumping.
+
+See the ./test/functional_tests/ctmrm/csrl/lumping tests.
+
+The possible problem is that Qureshi Sanders algorithm presumes state space ordering according to the state rewards, but Maneesh Khattri has the following opinion:
+
+In my opinion, the ordering of the state space is not required, though it might be done for some ease. The reason for this is:
+
+1.    First see equation (6) & (7) in the paper "Model checking Markov reward models with impulse rewards" DSN-PDS-05: In the vector k, each element, for instance ki: i - (1 to K+1), corresponds to the number of residences in states with reward ri such that r1>r2>r3>…>rK+1>0. The r’s are the distinct state rewards in descending order.
+
+2.    Now look at equation (9) in the paper referenced in step 1: We consider each path in isolation, but for the computation of the distribution of uni. order statistics, each of the paths has to again be characterized by means of the k & j vectors. It is, of course, possible that a number of paths have the same mentioned vectors.
+
+3.    So, for the computation (9) we only need for each of the paths the correct k & j vectors. Each path is a sequence of states and it is possible to obtain the state rewards for each state in the sequence. Now, we only need to obtain the correct index in the k & j vectors for the reward being considered. For this we can now consider the implementation.
+
+4.    See get_dsr method in transient_ctmrm.c: This method gets reward array and obtains a list of all the distinct state rewards. In addition to this, the method also creates the index_ list. The list indicates for each state the position (index) in the r’s as in step 1. For example, if we have a residence in state 2 for which index_[2] = 1, then k1= k1+1, since there has been a new residence in state whose reward corresponds to k1.
+
+5.    When the dfpg method in transient_ctmrm.c is called it searches for paths, in a depth-first manner, which would satisfy until formula. It also creates the k vector, by looking at the index_ array for each visit to states.
+
+6.    In my opinion, given that we only need to make the vectors correctly, and since dsr and index_ are already ordered by descending value of ri’s it is not required to order the whole state space.
+
+---------------------014--------------------------------
+DATE: 27.12.2006
+
+PRCTL, E operator gives different results with and without formula independent lumping, compare tests:
+	test/functional_tests/dtmrm/prctl/syntax/prctl_general_input_02
+and
+	test/functional_tests/dtmrm/prctl/syntax/prctl_general_input_01
+
+---------------------015-------FIXED-------------------------
+DATE: 26.09.2007
+
+General parser problem with the power of || and && operators.
+In MRMC up to version 1.2.2 the power of && and || were equal, i.e.
+due to the poor parsing prammar the model checking results,
+e.g. for the formulas:
+	a && b || c
+	c || b && a
+could be different!
+
+Is illustrated by the
+	test/functional_tests/dtmc/pctl/operators/basic/pctl_basic_01/
+regression test.
+	

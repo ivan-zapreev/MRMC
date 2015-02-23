@@ -1,0 +1,265 @@
+What has to be done about MRMC:
+
+1. Improve the MRMC architecture and sources:
+	
+	1.A) We need a module architecture for the tool that takes into account:
+		
+		1.A.1) Separate parser from the core.
+		
+		1.A.2) May be the
+			MRMC/src/runtime.c
+		file is not such a good idea, since sometimes the matrix and/or vector of exit rates
+		you work with gets replaced there. Perhaps everything but the runtime settings
+		of MRMC should be passed only as function arguments.
+		
+		1.A.3) Change an architecture in such a way that adding new algorithms and/or models, logics
+		would become easy. Also algorithms such as lumping (bisimulation) should be easily addable.
+		Since I expect that we may have to add Symmetry reduction.
+		
+		1.A.4) Add a possibility for checking special conditions on the input models.
+		For example in some cases we expect the ".tra" file to be properly ordered but
+		in fact it is not always needed. We need to add optional checks for such conditions.
+		
+		1.A.5) New data structures should be easily addable, we need some universal interface,
+		currently we work only with sparce matrices, we may and will need others.
+		
+		1.A.6) Move the MRMC Core into a separate static library.
+		
+		1.A.7) Add Java Native interface for the MRMC Core.
+		
+		1.A.8) Separate information logging, error- and warning- messaging from the MRMC sources.
+		The current 'prinf' approach is unusable especially if someone wants to use MRMC as a
+		library A.6), A.7).
+		
+		1.A.9) Improve error handling, now it is a mess, sometimes we just exit, sometimes we
+		return 1, sometimes we return NULL. All in all it is not uniform and is unacceptable
+		if someone wants to use MRMC as a library A.6), A.7).
+		
+		1.A.10) Error bounds are not properly computed and used! For nested formulas it is not
+		even known how to derive error bounds. For plain steady-state operator it is known but
+		is not done:
+		
+			1.A.10.I) Since probabilistic results are computed with a certain error bound for 
+				the steady-state (long-run) operators of PRCTL, PCTL, CSL and CSRL,
+				we have to check +- error bound bound:
+				WARNING: Here the provided error bound is not quite correct,
+				it is tighter than it should be but at least it is something!
+					S{<=>p}[phi], err = get_error_bound()
+				1. In case of ergodic MC we have to take:
+					error_bound = err * | phi |
+				2. In case of Non ergodic MC it should be:
+					error_bound = \Sum_j (y_j * err + x_ij * err * | phi_j | + err^2 * | phi_j |)
+				Where \Sum_j ( (x_ij +- err)*(y_j +- err * | phi_j |) )
+				is the way the probability is computed for the state i.
+					x_ij  - the probability to reach BSCC_j from state i
+					y_j   - the the total steady state probability of phi states in BSCC_j
+					phi_j - the phi states in BSCC_j
+			1.A.10.II) Imagine nested Until formulas, on every level there are computational errors.
+				Now what if one one level due to such an error we include a wrong state / exclude
+				a needed state, how does this affect the error bound of the formulas on the outer level?!
+		
+		We should be able to set an error bound once and then to derive sub error bounds for sub formulas
+		in such a way that the overall error remains the one the user wants. Right now the same error bound
+		is just used everywhere.
+		
+		1.A.11) In combination with A.10). Some algorithms provide error bound for each state probability
+		(Qureshi-Sanders), some provide different errors for sub sets of states, like for Long-run and
+		Steady-state operators. We need to have an extra structure for each algorithm that would contain
+		the resulting errors for possibly every state probability, or reward rate (PRCTL operators E, C, Y).
+	
+	1.C) Remove obsolete methods from the Sparce matrix implementation.
+	The ones that do not use "sparce * pM" parameter explicitly but rather use
+		static sparse *s = NULL;
+	file-local variable. See:
+		MRMC/src/storage/sparse.c
+	
+	1.D) Fix all unfixed bugs from the:
+		MRMC/buglist.txt
+	This includes the severe bug with the Uniformization based algorithm by Qureshi-Sanders for CSRL.
+	
+	1.E) Unify comments. Make them all look alike, e.g.:
+		/**
+		* This method normalizes solution i.e. makes the sum of its elements to be 1
+		* @param length the length of vector pSolution if pValidStates == NULL
+		* @param pSolution the solution vector
+		* @param pValidStates the valid states of the solution,
+		*                     pValidStates[0] == the number of valid states
+		*                     pValidStates == NULL if all states are valid
+		* @param in_any_case if TRUE then the normalization is performed even if sum < 1
+		*/
+	
+	1.F) Suggestion for your makefiles: To be more portable use "$(MAKE)" for
+		'recursive' make invocations inside a makefile; do not use "make".
+	
+	1.G) Make MRMC compilable on MAC OS X.
+		
+------------>Answer DONE:
+		Will come into MRMC 1.2.2 release.
+
+	
+2. New algorithms:
+	
+	2.A) Add Gauss-Seidel iterative method for the time unbounded until operator.
+		Unify the sources in the:
+		MRMC/src/algorithms/iterative_solvers.c
+		
+--------------->Answer DONE:
+		Will come into MRMC 1.2.2 release.
+	
+	2.B) Add Uniformization based algorithm by Bruno Sericola for CSRL.
+	
+	2.C) Implement red-black trees for Lumping (bisimulation) and integrate them
+	along with the splay-trees. Holger's letter:
+	
+		I have some results in my thesis in which I compare the O(m lg n) algorithm
+		(that uses splay tree), the O(m lg2 n) algorithm (that uses red-black tree),
+		and Peter Buchholz's implementation of an O(mn) algorithm. For large state
+		spaces the difference between the red-black and the O(mn) algorithm was about
+		a factor of 500 while the different between red-black and splay was around 7%
+		(red-black is faster).
+		
+		Buchholz reference is P. Buchholz. Efficient computation of equivalent and
+		reduced representations for stochastic automata. International Journal of
+		Computer Systems Science & Engineering, 15(2):93–103, 2000.
+	
+	David Jansen's letter:
+	
+		Joost-Pieter asked me to check Derisavi's thesis for information about runtime of
+		variants of his lumping algorithm.
+		
+		Derisavi describes in section 3.4 an experiment where he compared the lumping algorithms
+		for  an example system with up to 2 million states and 30 million transitions.
+		
+		It turns out that the lumping algorithm with splay trees is about 6% to 9% slower than
+		the algorithm with red-black trees. Derisavi gives as reason that most trees are very
+		small, so the constant factors are dominating the time complexity. Derisavi concludes:
+		"Therefore, it is preferable to use the red-black tree implementation in practice."
+	
+		So, we might add another task to the optimizations to be done: namely change the
+		implementation from splay trees to red-black trees. 
+		
+--------------->Answer MAY BE, BUT UNLIKELY:
+		In progress by Varun Agravala, the results are not good so far.
+		
+	2.D) Implement David Jansen's suggestions for lumping:
+	
+		Based on the thesis of Tim, I can see the following some optimizations of the
+		lumping implementation and perhaps some changes in MRMC that won't affect its
+		efficiency in other parts, but still improve the lumping:
+		
+		* Figure 3.1 on page 31: Memory savings are possible by
+			+ replacing the list of blocks by a dynamically-growing array of
+			blocks [e. g. a list of arrays of, say, 512 blocks each]. (saves
+			almost 8B per block, if the number of blocks is large.)
+			
+			Answer NO:
+			This is a good suggestion but the problem is we have to change a
+			considerable amount of code in order to implement this. Also list like L´´
+			are dependent on the original data structure.
+			This is not a substantial improvement in saving in terms of space.
+			Although this can be implemented if we are improving the entire code and
+			making it more modular.
+			
+			+ saving the flags of blocks more efficient. (saves 3.75B per block.)
+			
+----------------------->Answer NO:
+			Method suggested by Dr David is to use a bitset in the partition data
+			structure which keeps track of the flags used (SPLITTER, PARTITION,
+			ABSORBING). The problem is we dont know the size of the bitset and
+			over allocating space for it (MAX no of blocks = No of States) is a
+			bad startegy because whenever there is a reduction factor of 30
+			or more in the number of states then this would infact harm us more.
+			As in Kemma&#347; thesis we in high majority of cases have
+			state-space reduction of way over 30. The other approach is to use a
+			list of bitsets but this costs us penalty of time, because of unnecessary
+			list traversals as we have to reach the end of the bitset is to allocate
+			new flags for new blocks.
+			
+			+ replacing the double-linked list of states by a single-linked list.
+			(saves 4B per state.) Needs a simple, fast trick for deletion of a
+			state from a list.
+			
+----------------------->Answer NO:
+			Saves space but has time penalty. The trick suggested by Dr. David is good
+			but requires 6 assignment compared to 2 assignments with doubly linked case.
+			(For removing blocks etc.) This is so because of the pointer we have from
+			array of states to the state elements that constitute the list.
+			
+			+ replacing the array of pointers to states plus the pointers from
+			each state to its block by an array that contains, for each state,
+			a pointer to its block. (saves 4B per state.)
+			
+----------------------->Answer NO:
+			Huge time penalty, as we cannot get away with the list of states because we
+			need to constantly traverse the list of states in a block. This is possible
+			only when we have pointers from block to state not from states to block.
+			
+		In total, I estimate that this will reduce MRMC memory usage during
+		lumping by about 20%. These optimizations will not affect timing
+		behavior much (except via reduced swapping).
+		
+		* By organizing the (sparse) transition matrix in columns instead of in
+		rows, we can implement the lumping algorithm more efficiently (page 33,
+		but-last paragraph: looking up $Q(s_i,s_j)$ will then take constant
+		time, not $O(\log n)$), while matrix-vector multiplications can be
+		executed with the same efficiency as now (but in a different order).
+		
+		Ivan, which other operations rely on the fact that the transition
+		matrix be saved in rows (typically operations that use all successors
+		of a single state)?
+	
+	2.E) Add counter examples generation, the work of Tingting Han.
+	
+	2.F) Add QBD support, the work of Lucia Cloth, Anna Remke and Boudewijn Haverkort.
+	
+	2.G) Add simulation engine for PCTL and CSL, the thing Ivan Zapreev works on.
+	
+	2.H) Add support for Prism models (CTMC, DTMC). Hopefully it will be done as a part of
+	Compiler-construction course this summer.
+	
+3. Improve the usability of MRMC:
+	
+	3.A) Add a possibility to get not just the $RESULT[i] but $RESULT[i..j, k..p] etc.
+	
+	3.B) Add a possibility to log the intermediate results.
+	
+	3.B) Add a possibility to dump the model-checking results into a file from the
+	MRMC command prompt. It should be useful in case we have "set print off" and
+	after of checking results with $RESULT[i] and $STATE[i] we want to store the
+	rest on the hard drive.
+	
+	3.C) Improve and unify the error/warning messaging. Should be done as a part of A)
+	Make a clear distinctions between [WARNING], [ERROR], [INFO] messages
+	
+	3.D) The 'set print on/off' commands now do not affect the "uniformization_qureshi_sanders"
+		MRMC/src/modelchecking/transient_ctmrm.c
+	Probabilities and error bounds for each state are just printed now from the method itself!
+	Also we try to print the probabilistic result according to the error bound, i.e. only the
+	valid digits and in Qureshi-Sanders implementation it is not done!
+	
+4. Testing and Profiling:
+	
+	4.A) The current test coverage of MRMC is very poor. It should be extended especially
+	for every new algorithm and bug (regression tests).
+	
+	4.B) There has been no profiling done for bottle necks in MRMC.
+	
+	4.C) The performance-test scripts should be reorganized, now most of them are under the
+		MRMC/test/performance_tests/lumping/scripts
+	sub folder, whereas many are useful for all sorts of performance testing, and should be in:
+		MRMC/test/performance_tests/scripts
+	The scripts then should have minor modifications, such that all the referring paths are correct.
+	
+5. Documentation and Web:
+	
+	5.A) Currently we have some sort of documentation but it is far from being perfect.
+	Someone has to write it in an understandable manner and good English!
+	
+	5.B) Someone has to support the web-page, which includes news, periodic documentation
+	and other MRMC data updates, such as known references to MRMC and related projects.
+	
+	5.C) Make automatic subscription for the mailing list while downloading the tool.
+	Note, that it should be optional, i.e. the download form should have a check box for
+	subscribing to the mailing list. We should also be able to check that the person is
+	not already on the list.
+	

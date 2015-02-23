@@ -1,0 +1,22 @@
+%% Package `xcolor' by Dr. Uwe Kern
+%%
+%% Extract all package files:
+%%   `latex xcolor.ins'
+%%
+%% Create the documentation:
+%%   `latex xcolor.dtx'
+%%   `latex xcolor.dtx'
+%%   `makeindex -s gind.ist xcolor.idx'
+%%   `latex xcolor.dtx'
+%%   `latex xcolor.dtx'
+%%
+%% Run the test files (N=1,2,...):
+%%   `latex xcolorN.tex'
+%%   `latex xcolorN.tex'
+%%
+\def\batchfile{xcolor.ins}
+\input docstrip.tex
+\askforoverwritefalse
+\generate{\file{xcolor.lox}{\from{xcolor.dtx}{extract}}}
+\batchinput{xcolor.lox}
+\endbatchfile

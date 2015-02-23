@@ -1,0 +1,79 @@
+% Commands for variable length arrows for representing transitions
+% Originated from Jan Tretmans, juli 1991
+%
+%
+% The following commands are provided
+% \singlearrow{<argument>}    : draws a single arrow pointed to the
+%                               right superscripted by <argument>.
+% \doublearrow{<argument>}    : draws a double arrow pointed to the
+%                               right superscripted by <argument>.
+% \notsinglearrow{<argument>} : draws a singlearrow pointed to the
+%                               right superscripted by <argument> in
+%                               combination with a /not symbol.
+% \notdoublearrow{<argument>} : draws a doublearrow pointed to the
+%                               right superscripted by <argument> in
+%                               combination with a /not symbol.
+%
+% All commands must be processed in math mode.
+%
+% NOTE: the arrows are not well extended for very small superscripts,
+%       e.g. \doublearrow{l} or \doublearrow{i}
+
+
+\def\Rightarrowfill{$\m@th\mathord=\mkern-6mu%
+  \cleaders\hbox{$\mkern-2mu\mathord=\mkern-2mu$}\hfill
+  \mkern-6mu\mathord\Rightarrow$}
+\def\notRightarrowfill{$\m@th\mathord=\mkern-6mu%
+  \cleaders\hbox{$\mkern-2mu\mathord=\mkern-2mu$}\hfill
+  \mkern-6mu\mathord\not\!\Rightarrow$}
+
+\newlength{\arrowlength}
+
+\newcommand{\singlearrow}[1]
+{\settowidth{\arrowlength}{$_{#1=}\:\:$}
+{\setbox\@tempboxa\hbox to \arrowlength{\rightarrowfill}
+\ht\@tempboxa.5ex
+\,\buildrel #1\over{\box\@tempboxa}}\,}
+%
+% oude versie
+%
+%\newcommand{\doublearrow}[1]
+%{\,\settowidth{\arrowlength}{$_{#1=}\:\:$}
+%\mbox{$\stackrel{#1\,} 
+%{\hbox to \arrowlength {\Rightarrowfill}}\,$}}
+
+\newcommand{\doublearrow}[1]
+{\,\settowidth{\arrowlength}{$_{#1}\:\:$}
+\mbox{$\stackrel{#1\,} {\mbox{\raisebox{0.278ex}
+{$\stackrel{\rule[-0.040ex]{\arrowlength}{0.08ex}}
+{\rule{\arrowlength}{0.08ex}}$}}
+\!\!\!\Rightarrow}$}\,}
+
+\newcommand{\doublesinglearrow}[1]
+{\,\settowidth{\arrowlength}{$_{#1}\:\:$}
+\mbox{$\stackrel{#1\,} {\mbox{\raisebox{0.206ex}
+{$\stackrel{\rule{\arrowlength}{0.101ex}}
+{\rule[0.088ex]{\arrowlength}{0.101ex}}$}}
+\!\!\!\rightarrow}$}\,}
+
+\newcommand{\notsinglearrow}[1]
+{\settowidth{\arrowlength}{$_{#1=x}\:\:$}
+{\setbox\@tempboxa\hbox to \arrowlength{\rightarrowfill}
+\ht\@tempboxa.8ex
+\,\buildrel #1\over{\box\@tempboxa}}\hspace*{-2ex}/\hspace*{1.5ex}}
+%
+% oude versie
+%
+%\newcommand{\notdoublearrow}[1]
+%{\,\settowidth{\arrowlength}{$_{#1=}\:\:$}
+%\mbox{$\stackrel{#1\,}
+%{\hbox to \arrowlength {\notRightarrowfill}}\,$}}
+
+\newcommand{\notdoublearrow}[1]
+{\,\settowidth{\arrowlength}{$_{#1}\:\:$}
+\mbox{$\stackrel{#1\,} {\mbox{\raisebox{0.278ex}
+{$\stackrel{\rule[-0.040ex]{\arrowlength}{0.08ex}}
+{\rule{\arrowlength}{0.08ex}}$}}
+\!\!\!\not\Rightarrow}$}\,}
+
+

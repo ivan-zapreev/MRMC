@@ -1,0 +1,221 @@
+%To comment out some parts for submission
+\newcommand{\commM}[1]{}
+\newcommand{\commE}[1]{#1}
+
+%Frame box for formulas with minipage
+\newsavebox{\ffrbox}
+\newenvironment{fframe}[2] {\begin{center} \begin{lrbox}{\ffrbox} \begin{minipage}{#1\linewidth} \vspace{#2cm}}{ \end{minipage} \end{lrbox} \fbox{\usebox{\ffrbox}} \end{center}}
+
+%Eigenvalue eigenvector
+\newcommand{\vx}[1]{\overrightarrow{x_{#1}}}
+\newcommand{\vxe}{\overrightarrow{x^{*}}}
+\newcommand{\vxi}[1]{\overrightarrow{x\left(#1\right)}}
+\newcommand{\xij}[1]{x\left(#1\right)_{j}}
+\newcommand{\vxl}{\vx{\lambda}}
+\newcommand{\vxli}[1]{\vx{\lambda_{#1}}}
+\newcommand{\vp}{\overrightarrow{p}}
+
+%Matric & vector norms
+\newcommand{\nvec}[1]{\lVert #1 \rVert_{v} }
+\newcommand{\nmat}[1]{\lVert #1 \rVert_{m} }
+\newcommand{\nvece}[1]{\nvec{ #1 }^{2} }
+\newcommand{\nvecinf}[1]{\nvec{ #1 }^{\infty} }
+\newcommand{\nvecinfal}[1]{\nvec{ #1 }^{{\color[rgb]{0,0,1}\infty}} }
+\newcommand{\nmatinf}[1]{\nmat{ #1 }^{\infty} }
+\newcommand{\jinlN}[3]{#1 \in #2,..,#3} %\overline{}
+\newcommand{\vInd}{\overrightarrow{i_{Ind}}}
+
+%Complexity
+\newcommand{\Oc}[1]{\mathcal{O}\left( #1 \right)} %Big o - i.e. time complexity
+
+%Uniformization
+\newcommand{\ur}{q} %uniformization rate
+
+%CTMC & DTMC matrices
+\newcommand{\mB}{\mP_{B}} %A DTMC where all bad states, i.e. not Phi and not Psi and Psi belonging to some BSCC are made absorbing
+\newcommand{\mP}{\mathcal{P}} %A stochastic matrix
+\newcommand{\mU}{\mP_{unif}} %Uniformized CTMC
+\newcommand{\mT}{\mathcal{T}} %An irreducible submatrix of a stochastic matrix.
+\newcommand{\DTMC}{\left( S,\: \mP \right)}
+\newcommand{\mQ}{\mathcal{Q}} %Generator matrix
+\newcommand{\mR}{\mathcal{R}} %Rate matrix
+\newcommand{\CTMC}{\left( S,\: \mQ \right)}
+\newcommand{\mA}{\mathcal{A}}
+\newcommand{\mQnpvp}{\mQ\left[\npvp \right]}
+\newcommand{\mQBnpvp}{\mQ^{B}\left[\npvp \right]}
+
+%CTMC and transient analysis
+\newcommand{\pipOti}{\pi^{*} \left(0, t \right )_{i}} %The i'th component of \vpipOt
+\newcommand{\vpipOt}{\overrightarrow{\pi^{*} \left(0, t \right )}} % Transient probability, precise
+\newcommand{\pipOtj}{\pi^{*} \left(0, t \right )_{j}} % The j'th component of the transient-probability vector, precise
+\newcommand{\vpiOt}{\overrightarrow{\pi \left(0, t \right )}} % Transient probability, computed
+\newcommand{\piOtj}{\pi \left(0, t \right )_{j}} % The j'th component of the transient-probability vector, computed
+
+
+\newcommand{\pOi}{p\left( 0 \right)_{i}} % The i'th component of \vpO
+\newcommand{\vpO}{\overrightarrow{p \left( 0 \right)} } % Initial distribution for a CTMC
+\newcommand{\vpOi}{\overrightarrow{p(0,i)}} %The i'th iteration for uniformized DTMC, with initial distribution \vpiO
+\newcommand{\pOij}{p(0,i)_{j}} %The j'th component of \vpOi
+\newcommand{\vpOK}{\overrightarrow{p(0,K)}} %The K'th iteration for uniformized DTMC, with initial distribution \vpiO
+\newcommand{\pOKj}{p(0,K)_{j}} %The j'th component of \vpOK
+\newcommand{\vpOiM}{\overrightarrow{p(0,i+M)}} %The (i+M)'th iteration for uniformized DTMC, with initial distribution \vpiO
+\newcommand{\vppO}{\overrightarrow{p^{*}(0)}} %The steady state for transient analysis, starting in state \vpiO
+\newcommand{\ppOj}{p^{*}(0)_{j}} %The j'th component of \vppO
+\newcommand{\ppOi}{p^{*}(0)_{i}} %The i'th component of \vppO
+
+%CSL model checking
+\newcommand{\vis}{\overrightarrow{1_{s} }} %The initial distribution for state s
+\newcommand{\vpist}{\overrightarrow{\pi \left( s,t \right) }}
+\newcommand{\vpit}{\overrightarrow{\pi \left( t \right) }} %The resulting probability vector for backward computations
+\newcommand{\vpsi}{\overrightarrow{p(s,i)}} %An i'th iteration vector for forward computation 
+\newcommand{\vpsj}[1]{\overrightarrow{p(s,#1)}} %An j'th iteration vector for forward computation 
+\newcommand{\vpsim}{\overrightarrow{p(s,i{+}M)}}  %An (i+m)'th iteration vector for forward computation
+\newcommand{\vpOim}{\overrightarrow{p(0,i{+}M)}}  %An (i+m)'th iteration vector for forward computation
+\newcommand{\vpsK}{\overrightarrow{p(s,K)}} %A K'th iteration vector for forward computation 
+\newcommand{\vpsKI}{\overrightarrow{p(s,K{+}1)}} %A K+1'th iteration vector for forward computation 
+\newcommand{\vpi}{\overrightarrow{p(i)}} %An i'th iteration vector for backward computation
+\newcommand{\vpK}{\overrightarrow{p(K)}} %An K'th iteration vector for backward computation
+\newcommand{\vpKI}{\overrightarrow{p(K{+}1)}} %An K+1'th iteration vector for backward computation
+\newcommand{\vpiM}{\overrightarrow{p(i{+}M)}} %An (i+m)'th iteration vector for backward computation
+\newcommand{\vpipt}{\overrightarrow{\pi^{*} \left( t \right)}} % A precise solution of equation for backward computations
+\newcommand{\vpipst}{\overrightarrow{\pi^{*} \left(s, t \right)}}  % A precise solution of equation for forward computations
+\newcommand{\vpps}{\overrightarrow{p^{*}(s)}} % The precise steady-state vector for forward computation
+\newcommand{\vpp}{\overrightarrow{p^{*}}} % The precise steady-state vector for backward computation
+\newcommand{\vipsi}{\overrightarrow{i_{\Psi}}}
+\newcommand{\vibad}{\overrightarrow{i_{\BPsi \cup \SNPhi}}}
+\newcommand{\vbpi}{\overrightarrow{p^{B}\left( i \right)}}
+\newcommand{\vbpK}{\overrightarrow{p^{B}\left( K \right)}}
+\newcommand{\bpij}{p^{B}\left( i \right)_{j}}
+
+\newcommand{\ipsij}{i_{\Psi,j}}  %The j'th component of \vipsi
+\newcommand{\pitj}{\pi \left( t \right)_{j}}
+\newcommand{\pits}{\pi \left( t \right)_{s}}
+\newcommand{\piptj}{\pi^{*} \left( t \right)_{j}}
+\newcommand{\pipts}{\pi^{*} \left( t \right)_{s}}
+\newcommand{\pistj}{\pi \left(s, t \right)_{j}}
+\newcommand{\pipstj}{\pi^{*} \left(s, t \right)_{j}}
+\newcommand{\pij}{p(i)_{j}} % The j'th component of the i'th iterate for backward computation
+\newcommand{\pilj}{p(i+1)_{j}} % The j'th component of the i+1'th iterate for backward computation
+\newcommand{\pKj}{p(K)_{j}} % The j'th component of the K'th iterate for backward computation
+\newcommand{\ppj}{p^{*}_{j}} % The j'th component of the precise steady-state vector for backward computation
+\newcommand{\psij}{p(s,i)_{j}} % The j'th component of the i'th iterate for forward computation starting from state s
+\newcommand{\psji}[2]{p(s,#1)_{#2}} % The i'th component of the j'th iterate for forward computation starting from state s
+\newcommand{\pjik}{p(j,i)_{k}} % The k'th component of the i'th iterate for forward computation, starting from state j
+\newcommand{\psiNl}{p(s,i)_{N{-}1}} % The N-1'th component of the i'th iterate for forward computation
+\newcommand{\psiN}{p(s,i)_{N}} % The N'th component of the i'th iterate for forward computation
+\newcommand{\psKNI}{p(s,K)_{N{-}1}} % The N-1'th component of the K'th iterate for forward computation
+\newcommand{\psKINI}{p(s,K+1)_{N{-}1}} % The N-1'th component of the K+1'th iterate for forward computation
+\newcommand{\psKIN}{p(s,K{+}1)_{N}} % The N'th component of the K+1'th iterate for forward computation
+\newcommand{\psKN}{p(s,K)_{N}} % The N'th component of the K'th iterate for forward computation
+\newcommand{\psKj}{p(s,K)_{j}} % The j'th component of the K'th iterate for forward computation
+\newcommand{\psKZj}{p(s,K{+}Z)_{j}} % The j'th component of the K+Z'th iterate for forward computation
+
+\newcommand{\psKIj}{p(s,K{+}1)_{j}} % The j'th component of the K+1'th iterate for forward computation
+\newcommand{\ppsj}{p^{*}(s)_{j}} % The j'th component of the precise steady-state vector for forward computation
+\newcommand{\ppsNl}{p^{*}(s)_{N{-}1}} % The N-1'th component of the precise steady-state vector for forward computation
+\newcommand{\ppsN}{p^{*}(s)_{N}} % The N'th component of the precise steady-state vector for forward computation
+
+%For the stopping criteria
+\newcommand{\psjk}[1]{p\left(s,#1\right)_{k}}
+\newcommand{\tmaxk}{t_{k}^{max}}  %the max probability to go from a transient state to and absorbing state k in one step
+
+%Poisson 
+\newcommand{\pnd}{e^{-\ur t}\frac{\left( \ur t \right)^{i}}{i!}}
+\newcommand{\gpqt}[1]{\gamma_{#1}(t)}
+\newcommand{\giqt}{\gpqt{i}}
+\newcommand{\gjqt}{\gpqt{j}}
+
+%Fox-Glynn
+\newcommand{\ltp}{\mathcal{L}_{\epsilon}} %Left truncation point
+\newcommand{\rtp}{\mathcal{R}_{\epsilon}} %Right truncation point
+\newcommand{\wi}{w_{i}(t)} %The i'th weight
+
+%Misc
+\newcommand{\ToDo}[1]{ 
+                                          \begin{center} 
+                                          *************************** ToDo ***************************\\
+                                          \emph{#1}\\
+                                          ************************************************************
+                                          \end{center} 
+                                        }
+\newcommand{\eqnapp}[1]{
+                                            \renewcommand{\theequation}{#1.\arabic{equation}}
+                                            % redefine the command that creates the equation no.
+                                            \setcounter{equation}{0}  % reset counter 
+                                          }
+
+%Good and Bad states
+	%Sets of states
+	\newcommand{\Ind}{Ind} %A set of indexes
+	\newcommand{\Gl}{\mathcal{G}} %Goal states
+	\newcommand{\Al}{\mathcal{A}} %Allowed states
+	\newcommand{\Il}{\mathcal{I}} %Illegal states those which are no \Al and not \Gl
+	\newcommand{\Bag}{B_{ \Al, \Gl }} %The bad states to make absorbing
+	\newcommand{\vigl}{\overrightarrow{1_{\Gl}}}
+	\newcommand{\viind}{\overrightarrow{1_{\Ind}}}
+	\newcommand{\AlMBagGl}{\Al \setminus \left( \Gl \cup \Bag \right)}
+
+	%Matrices
+	\newcommand{\mQnavg}{\mQ\left[ \Il \cup \Gl \right]}
+
+	%Probabilistic Time reachability
+	\newcommand{\PZsf}[3]{\mathrm{P}_{#1}(#2, \:#3)}
+	\newcommand{\ppUp}[4]{#1 \: \mathrm{U}^{[#2,#3]} \: #4}
+	\newcommand{\PZsaUg}[4]{\PZsf{#1}{#2}{\ppUp{\Al}{#3}{#4}{\Gl}}}
+	
+	\newcommand{\PZaUg}[3]{\PZf{#1}{\ppUp{\Al}{#2}{#3}{\Gl}}}
+
+	\newcommand{\Psf}[2]{\mbox{\it Prob}(#1, \: #2 )}
+	\newcommand{\Pf}[1]{\mathrm{P}( #1 )}
+	\newcommand{\PsaUg}[3]{\Psf{#1}{\ppUp{\Al}{#2}{#3}{\Gl}}}
+	\newcommand{\PsSUg}[3]{\Psf{#1}{\ppUp{S}{#2}{#3}{\Gl}}}
+	
+	%Vectors
+	\newcommand{\vibadag}{\overrightarrow {i_{\Bag \cup \Il}}}
+
+%PRCTL
+\newcommand{\Y}[2]{{\cal Y}^{#1}_{#2}}
+\newcommand{\Prob}[3]{{\cal P}_{#1 #2}(#3)}
+
+%CSL
+	%Steady-state operator
+	 \newcommand{\SpsP}[3]{\mathrm{S}_{\trianglelefteq #1}(#2,\: #3)}
+	 
+	 %Next operator
+	 \newcommand{\Xp}[3]{\mathrm{X}^{[#1,\:#2]} \: #3}
+	 
+	%Until operator
+	\newcommand{\ttUp}[2]{\ppUp{tt}{#1}{#2}{\Psi}}  %The time bounded true Until Psi formula
+	\newcommand{\pUp}[2]{\ppUp{\Phi}{#1}{#2}{\Psi}}  %The time bounded Phi Until Psi formula
+	
+	%Bounded probability and until operator with some initial state
+	\newcommand{\PZf}[2]{\mathrm{P}_{#1}(#2)}
+	\newcommand{\PZspUp}[4]{\PZsf{#1}{#2}{\pUp{#3}{#4}}}
+	\newcommand{\PZsttUp}[4]{\PZsf{#1}{#2}{\ttUp{#3}{#4}}}
+	\newcommand{\PZpUp}[3]{\PZf{#1}{\pUp{#2}{#3}}}
+
+	%Probability for state formula with some initial state
+	\newcommand{\PspUp}[3]{\Psf{#1}{\pUp{#2}{#3}}}
+	\newcommand{\PsttUp}[3]{\Psf{#1}{\ttUp{#2}{#3}}}
+	
+	%Some bad states, we make absorbing
+	\newcommand{\BPsi}{\mathrm{B}_{\Psi}}
+
+%CSRL
+	%Until reward operator
+	\newcommand{\ppUrp}[6]{#1 \: \mathrm{U}^{{\tiny [#2,#3]}}_{{\tiny [#4,#5]}} \: #6}
+	\newcommand{\pUrp}[4]{\ppUrp{\Phi}{#1}{#2}{#3}{#4}{\Psi}}  %The time bounded Phi Until Psi formula
+
+	\newcommand{\npvp}{\lnot \Phi \vee \Psi}
+	\newcommand{\Sat}[1]{Sat \left(#1 \right)} % The set of states satisfying \Psi
+	\newcommand{\SPsi}{\Sat{\Psi}} % The set of states satisfying \Psi
+	\newcommand{\SPhi}{\Sat{\Phi}} % The set of states satisfying \Psi
+	\newcommand{\SNPhi}{\Sat{\lnot \Phi}} % The set of states satisfying \not \Psi
+	\newcommand{\Bpp}{B_{ \Phi, \Psi }} %The bad states to make absorbing
+	\newcommand{\mQB}{\mQ^{B}} %The \mQ[\npvp] matrix with \Bpp states made absorbing
+
+%Tools
+	\newcommand{\prism}{\emph{Prism v2.1}}
+	\newcommand{\etmcc}{\emph{ETMCC v1.4.2}}
+	\newcommand{\mrmc}{\emph{MRMC v1.0}}
+	\newcommand{\ultrasan}{\emph{UltraSAN v3.0}}

@@ -1,0 +1,102 @@
+\documentclass[twoside,a4paper,,10pt]{article}
+
+\usepackage{verbatim}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{gastex}
+\usepackage{multirow}
+\usepackage{color}
+
+\input{../../../../global_etmcc.tex}
+
+\newtheorem{lemma}{Lemma}
+
+\begin{document}
+
+\begin{center}
+	{\huge Reference page for the presentation:}
+\end{center}
+\begin{center}
+	"On-the-fly steady-state detection for $\PspUp{s}{0}{t}$, of CSL logic."
+\end{center}
+\section{Global definitions}
+	$t$ - time.\\
+	$s,j$ - the state index, vector component number.\\
+	$i$ - the iteration number, summation index.\\
+	$v_j$ - the $j$'th component of some vector $\vec{v}$.\\
+	$\ltp, \: \rtp$ - the left- and right- truncation points.\\
+	$\ur$ - the uniformization rate.\\
+	$\nvec{.}$ - a vector norm, $\nvecinf{v} = \max_{\jinlN{i}{1}{N}} |v_{i}|$\\
+	$K$ - the iteration number, when steady-state is detected.\\
+	$M$ - the steady state criteria is checked every $M$ iterations.
+
+%Fox-Glynn algorithm
+\section{Fox-Glynn algorithm}
+	Define , $\giqt = \pnd $, $\alpha \neq 0$ - some constant, $\wi = \alpha \giqt$, $W = w(\ltp)+ \ldots + w(\rtp)$.
+	
+	 Here $\ltp, \: \rtp$ are such that $\sum_{i=0}^{\ltp-1} \giqt \leq \frac{\epsilon}{4}$ and $\sum_{i=\rtp+1}^{\infty} \giqt \leq \frac{\epsilon}{4}$.
+	\begin{lemma}
+		Let $f$ be a real-valued function with $\|f\| = \sup_{\jinlN{i}{0}{\infty}}f(i)$ and $\sum_{i=\ltp}^{\rtp} \giqt \geq 1 - \frac{\epsilon}{2}$. In exact arithmetic,
+		\begin{equation}
+			| \sum_{i=0}^{\infty} \giqt f(i) - \frac{1}{W}\sum_{i = \ltp}^{\rtp} \wi f(i)| \leq \epsilon \|f\| \nonumber
+		\end{equation}
+	\end{lemma}
+
+\section{Transient analysis}
+%Transient analysis forward computations
+	\emph{Forward computations:}
+	\begin{equation}
+		\PspUp{s}{0}{t} = \sum_{j \in \SPsi}\pipstj
+		\nonumber
+	\end{equation}
+	\begin{equation}
+		\vpipst = \overrightarrow{1_{s}} \cdot e^{\mQnpvp t}
+		\label{eq:fsmc_base} \tag{2}
+	\end{equation}
+	\emph{Backward computations:}
+	\begin{equation}
+		\forall \jinlN{j}{1}{N}\: : \: \PspUp{j}{0}{t} = \piptj
+		\nonumber
+	\end{equation}
+	\begin{equation}
+		\vpipt = e^{\mQnpvp t} \cdot \vipsi
+		\label{eq:fsmc_imr} \tag{3}
+	\end{equation}
+
+\section{Numerical computations}
+%Numerical computations for forward computations
+	\emph{Forward computations:}
+	\begin{equation}
+		\vpipst = \sum_{i=0}^{\infty}\pnd \vpsi
+		\label{eq:until_general} \tag{5}
+	 \end{equation}
+	\begin{equation}
+		\vpsi = \vec{1_{s}} \cdot \mP^{i}
+		\nonumber
+	\end{equation}
+	\emph{Backward computations:}
+	\begin{equation}
+		\vpipt = \sum_{i=0}^{\infty}\pnd \vpi \nonumber
+	\end{equation}
+	\begin{equation}
+		\vpi = \mP^{i} \cdot \vipsi
+		\nonumber
+	\end{equation}
+
+\section{Numerical computations, steady-state}
+%Numerical computations, forward computations, steady-state detection
+	\emph{Forward computations:}\\
+	Criteria: If $\nvec{\vpsi - \vpsim} \leq \frac{\epsilon}{4}$ then $K = i + M$.\\
+	Case: ($\ltp \leq K \leq \rtp$)
+	\begin{equation}
+		\vpist = \sum_{i=\ltp}^{K}\pnd \vpsi + \vpsk \left(1- \sum_{i=0}^{K}\pnd \right) \label{eq:ssd_LR} \tag{6}
+	\end{equation}
+	\emph{Backward computations:}\\
+	Criteria: If $\nvec{\vpi - \vpim} \leq \frac{\epsilon}{8}$ then $K = i + M$.\\
+	Case: ($\ltp \leq K \leq \rtp$)
+	\begin{equation}
+		\vpit = \sum_{i=\ltp}^{K}\pnd \vpi + \vpk \left(1- \sum_{{\color[rgb]{0,0,1}i=\ltp}}^{K} \pnd \right) \label{eq:ssd_LR_b} \tag{7}
+	\end{equation}
+
+\end{document}

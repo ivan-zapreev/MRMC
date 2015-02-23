@@ -1,0 +1,61 @@
+TCS-QAPL 2006 Special Issue Review Form
+
+
+ Review  
+
+ Paper number: 04
+  
+ Detailed Comments
+ 
+ The authors deal with the time-bounded reachability problem in the setting
+ of continuous-time Markov chains (CTMCs). This is a relevant problem in
+ CTMC analysis with important practical effects because the efficiency of
+ probabilistic model checkers strictly depends on the efficiency of the
+ algorithms for time-bounded reachability.
+ The objective of the paper is however related to the correctness of such
+ algorithms which, as the authors show, can be guaranteed with a sustainable
+ impact on the efficiency. More precisely, they show how steady-state 
+ techniques can be safely adopted to save expensive computations when 
+ performing the reachability analysis. In essence, the approach they propose 
+ offers criteria for detecting (with the desired approximation) the steady 
+ state behavior of the CTMC which allows for the correct reachability 
+ analysis. The soundness of their technique is paid in the worst case 
+ (corresponding to the backward reachability algorithm) by an overhead equal 
+ to doubling the computation time. 
+  
+ In this respect, the paper well fits the scope of the special issue by
+ discussing methodologies that are at the basis of the formal verification
+ of probabilistic and timing properties of systems.
+ 
+ The main results of the paper are: 
+ - new error bounds for steady-state detection. This is not so original and,
+ to some extent, represents an expected refinement of previous results. The
+ results are valid (however I did not go into the details of the appendix 
+ proofs). In practice, this part proposes the same results presented at the
+ QEST conference in Riverside.
+ - a technique to safely detect steady-state. This has interesting effects 
+ in practice. A number of experiments have been conducted on a significant
+ benchmark that puts in evidence the merits of the approach. This is the
+ most original contribution of the paper with respect to previous work.
+ I wonder whether the differences shown in the figures depend (only or 
+ mainly) on the implementation of the proposed algorithm within MRMC, or 
+ they also express the (in)efficiency of specific features of the tools 
+ under consideration. Showing the same curves obtained through MRMC with 
+ the activated/deactivated features of the newly implemented technique 
+ would help to investigate the real merit (or impact) of the proposed 
+ approach. Actually, this is done in Fig.4 only. Does it report the typical 
+ behavior of the SSD mechanism for the whole benchmark? In general, more 
+ comments and more scenarios (as done e.g. in the case of Fig. 5, where the 
+ effect of changing an important parameter is shown) should be presented in 
+ this section.
+
+ Related work and comparison with existing techniques and tools are 
+ adequately discussed. In general, the paper is well presented even if the 
+ experimental part should deserve more details. As far as the originality 
+ is concerned, actually the paper represents a smooth extension of the work 
+ presented at the last QEST. 
+ Both criticisms could be coped with by introducing a toy example 
+ encompassing section 2 to section 6 and by adding more comments and 
+ statistics in section 7. The proof of Proposition 3.2 can be moved to
+ the appendix.  
+

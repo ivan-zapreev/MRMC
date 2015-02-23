@@ -1,0 +1,8 @@
+#Some abstract curve for a system with state and impulse rewards
+0.0 0.0
+1.0 0.27
+1.0 0.4
+2.0 0.4
+4.0 0.6
+4.0 0.8
+6.0 1.0

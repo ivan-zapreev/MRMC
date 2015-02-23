@@ -1,0 +1,17 @@
+\ProvidesPackage{vaucanson-g}[2003/05/09 package wrapper for Vaucanson-G]
+\typeout{vaucanson.sty is an obsolete name for vaucanson-g.sty. A file is kept
+under that name in order to ensure upward compatibility.}
+\DeclareOption{slides}{\AtEndOfPackage{\input VCPref-slides.tex}}
+\ProcessOptions
+\RequirePackage{ifthen}
+\RequirePackage[usenames]{pstcol}
+\RequirePackage{pst-node}
+\RequirePackage{pst-plot}
+\RequirePackage{pst-coil}
+\RequirePackage{multido}
+\RequirePackage{pst-3d}
+\RequirePackage{color}
+\RequirePackage{calc}
+\input Vaucanson-G.tex
+\input VCPref-main.tex
+\endinput

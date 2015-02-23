@@ -1,0 +1,310 @@
+This is TeX, Version 3.14159 (Web2C 7.3.7x) (format=latex 2002.7.11)  21 JUL 2003 01:20
+**\nonstopmode\input{example.tex}
+(./example.tex (./entcs.cls
+Document Class: entcs 1994/01/12, 2e-1.15: Elsevier Preprint
+(/usr/local/teTeX/share/texmf/tex/latex/base/newlfont.sty
+Package: newlfont 1998/08/17 v2.2m Standard LaTeX package
+LaTeX Info: Redefining \em on input line 62.
+
+(/usr/local/teTeX/share/texmf/tex/latex/base/latexsym.sty
+Package: latexsym 1998/08/17 v2.2e Standard LaTeX package (lasy symbols)
+\symlasy=\mathgroup4
+LaTeX Font Info:    Overwriting symbol font `lasy' in version `bold'
+(Font)                  U/lasy/m/n --> U/lasy/b/n on input line 42.
+))
+(/usr/local/teTeX/share/texmf/tex/latex/amsfonts/amssymb.sty
+Package: amssymb 2002/01/22 v2.2d
+
+(/usr/local/teTeX/share/texmf/tex/latex/amsfonts/amsfonts.sty
+Package: amsfonts 2001/10/25 v2.2f
+\@emptytoks=\toks14
+\symAMSa=\mathgroup5
+\symAMSb=\mathgroup6
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 132.
+))
+(/usr/local/teTeX/share/texmf/tex/latex/oberdiek/ifpdf.sty
+Package: ifpdf 2001/06/14 v1.0 Providing \ifpdf (HO)
+Package ifpdf Info: pdfTeX in pdf mode not detected on input line 140.
+)
+(/usr/local/teTeX/share/texmf/tex/latex/hyperref/hyperref.sty
+Package: hyperref 2003/01/22 v6.73n Hypertext links for LaTeX
+
+(/usr/local/teTeX/share/texmf/tex/latex/graphics/keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks15
+)
+\@linkdim=\dimen102
+\Hy@linkcounter=\count79
+\Hy@pagecounter=\count80
+
+(/usr/local/teTeX/share/texmf/tex/latex/hyperref/pd1enc.def
+File: pd1enc.def 2003/01/22 v6.73n Hyperref: PDFDocEncoding definition (HO)
+)
+Package hyperref Info: Hyper figures OFF on input line 1792.
+Package hyperref Info: Link nesting OFF on input line 1797.
+Package hyperref Info: Hyper index ON on input line 1800.
+Package hyperref Info: Plain pages ON on input line 1805.
+Package hyperref Info: Backreferencing OFF on input line 1812.
+
+Implicit mode ON; LaTeX internals redefined
+Package hyperref Info: Bookmarks ON on input line 1916.
+(/usr/local/teTeX/share/texmf/tex/latex/misc/url.sty
+\Urlmuskip=\muskip10
+Package: url 1999/03/28  ver 1.5x  Verb mode for urls, etc.
+)
+LaTeX Info: Redefining \url on input line 2055.
+\Fld@menulength=\count81
+\Field@Width=\dimen103
+\Fld@charsize=\dimen104
+\Choice@toks=\toks16
+\Field@toks=\toks17
+Package hyperref Info: Hyper figures OFF on input line 2513.
+Package hyperref Info: Link nesting OFF on input line 2518.
+Package hyperref Info: Hyper index ON on input line 2521.
+Package hyperref Info: backreferencing OFF on input line 2528.
+Package hyperref Info: Link coloring OFF on input line 2533.
+\c@Item=\count82
+\c@Hfootnote=\count83
+)
+*hyperref using driver hdvips*
+(/usr/local/teTeX/share/texmf/tex/latex/hyperref/hdvips.def
+File: hdvips.def 2003/01/22 v6.73n Hyperref driver for dvips
+
+(/usr/local/teTeX/share/texmf/tex/latex/hyperref/pdfmark.def
+File: pdfmark.def 2003/01/22 v6.73n Hyperref definitions for pdfmark specials
+\pdf@docset=\toks18
+\pdf@box=\box26
+\pdf@toks=\toks19
+\pdf@defaulttoks=\toks20
+\Fld@listcount=\count84
+\@outlinefile=\write3
+))
+(/usr/local/teTeX/share/texmf/tex/latex/base/leqno.clo
+File: leqno.clo 1998/08/17 v1.1c Standard LaTeX option (left equation numbers)
+)
+LaTeX Info: Redefining \rm on input line 75.
+LaTeX Info: Redefining \cal on input line 76.
+LaTeX Info: Redefining \sf on input line 77.
+LaTeX Info: Redefining \tt on input line 78.
+LaTeX Info: Redefining \bf on input line 79.
+LaTeX Info: Redefining \it on input line 80.
+LaTeX Info: Redefining \sl on input line 81.
+LaTeX Info: Redefining \sc on input line 82.
+\@bls=\dimen105
+\eqntopsep=\skip41
+\eqnarraycolsep=\dimen106
+\labelwidthi=\dimen107
+\labelwidthii=\dimen108
+\labelwidthiii=\dimen109
+\labelwidthiv=\dimen110
+\@maxlistdepth=\count85
+\eqnbaselineskip=\skip42
+\eqnlineskip=\skip43
+\mathindent=\dimen111
+\c@part=\count86
+\c@section=\count87
+\c@subsection=\count88
+\c@subsubsection=\count89
+\c@paragraph=\count90
+\c@subparagraph=\count91
+\c@thm=\count92
+\c@alg=\count93
+\c@algorithm=\count94
+\c@note=\count95
+\c@summ=\count96
+\c@case=\count97
+\@tempcntc=\count98
+\c@figure=\count99
+\c@table=\count100
+\t@glob@notes=\toks21
+\t@loc@notes=\toks22
+\note@cnt=\count101
+\c@author=\count102
+\n@author=\count103
+\c@collab=\count104
+\n@collab=\count105
+\c@address=\count106
+\sv@mathsurround=\dimen112
+\sv@hyphenpenalty=\count107
+\prev@elem=\count108
+\cur@elem=\count109
+\fm@box=\box27
+\fm@size=\dimen113
+\t@abstract=\box28
+\t@keyword=\box29
+\t@xtheight=\dimen114
+\@logoheight=\dimen115
+\@pubyear=\count110
+\@copyear=\count111
+\slashbox=\box30
+LaTeX Font Info:    Try loading font information for U+lasy on input line 1123.
+
+
+(/usr/local/teTeX/share/texmf/tex/latex/base/ulasy.fd
+File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
+)
+LaTeX Font Info:    Try loading font information for U+msa on input line 1123.
+
+(/usr/local/teTeX/share/texmf/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2002/01/19 v2.2g AMS font definitions
+)
+LaTeX Font Info:    Try loading font information for U+msb on input line 1123.
+
+(/usr/local/teTeX/share/texmf/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2002/01/19 v2.2g AMS font definitions
+)
+\Slashbox=\box31
+) (./entcsmacro.sty)
+(/usr/local/teTeX/share/texmf/tex/latex/graphics/graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/local/teTeX/share/texmf/tex/latex/graphics/graphics.sty
+Package: graphics 2001/07/07 v1.0n Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/local/teTeX/share/texmf/tex/latex/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/usr/local/teTeX/share/texmf/tex/latex/config/graphics.cfg
+File: graphics.cfg 2001/08/31 v1.1 graphics configuration of teTeX/TeXLive
+)
+Package graphics Info: Driver file: dvips.def on input line 80.
+
+(/usr/local/teTeX/share/texmf/tex/latex/graphics/dvips.def
+File: dvips.def 1999/02/16 v3.0i Driver-dependant file (DPC,SPQR)
+))
+\Gin@req@height=\dimen116
+\Gin@req@width=\dimen117
+) (./example.aux)
+\openout1 = `example.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 26.
+LaTeX Font Info:    ... okay on input line 26.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 26.
+LaTeX Font Info:    ... okay on input line 26.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 26.
+LaTeX Font Info:    ... okay on input line 26.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 26.
+LaTeX Font Info:    ... okay on input line 26.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 26.
+LaTeX Font Info:    ... okay on input line 26.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 26.
+LaTeX Font Info:    ... okay on input line 26.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 26.
+LaTeX Font Info:    ... okay on input line 26.
+Package hyperref Info: Link coloring OFF on input line 26.
+
+(/usr/local/teTeX/share/texmf/tex/latex/hyperref/nameref.sty
+Package: nameref 2001/01/27 v2.19 Cross-referencing by name of section
+\c@section@level=\count112
+)
+LaTeX Info: Redefining \ref on input line 26.
+LaTeX Info: Redefining \pageref on input line 26.
+ (./example.out)
+(./example.out)
+\openout3 = `example.out'.
+
+\c@sv@footnote=\count113
+LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <12> not available
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 64.
+
+Overfull \hbox (7.33429pt too wide) in paragraph at lines 65--68
+[]\OT1/cmr/m/n/12 a macro file con-tain-ing the def-i-ni-tions of some of the t
+heorem-
+ []
+
+
+Overfull \vbox (20.33325pt too high) has occurred while \output is active []
+
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 68.
+
+(/usr/local/teTeX/share/texmf/tex/latex/base/omscmr.fd
+File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/sl' in size <10.95> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 68.
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 68.
+ [1]
+
+LaTeX Font Warning: Command \tiny invalid in math mode on input line 84.
+
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <6> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 85.
+[2] [3]
+Underfull \hbox (badness 10000) in paragraph at lines 236--239
+
+ []
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [4]
+Overfull \hbox (7.34529pt too wide) in paragraph at lines 255--257
+[]\OT1/cmr/m/n/12 However, note that the ref-er-ences should \OT1/cmr/m/it/12 n
+ot \OT1/cmr/m/n/12 be started with a new []\OT1/cmtt/m/n/12 \section
+ []
+
+
+LaTeX Font Warning: Command \tiny invalid in math mode on input line 260.
+
+
+Package hyperref Warning: Token not allowed in a PDFDocEncoded string,
+(hyperref)                removing `\<def>-command' on input line 267.
+
+
+Package hyperref Warning: Token not allowed in a PDFDocEncoded string,
+(hyperref)                removing `\f@shape' on input line 267.
+
+
+Package hyperref Warning: Token not allowed in a PDFDocEncoded string,
+(hyperref)                removing `\<def>-command' on input line 267.
+
+
+Package hyperref Warning: Token not allowed in a PDFDocEncoded string,
+(hyperref)                removing `\font@name' on input line 267.
+
+
+Package hyperref Warning: Token not allowed in a PDFDocEncoded string,
+(hyperref)                removing `\OT1/cmtt/m/n/12' on input line 267.
+
+
+LaTeX Font Warning: Command \tiny invalid in math mode on input line 269.
+
+
+LaTeX Font Warning: Command \tiny invalid in math mode on input line 272.
+
+
+LaTeX Font Warning: Command \tiny invalid in math mode on input line 280.
+
+[5]
+Underfull \hbox (badness 10000) in paragraph at lines 342--351
+
+ []
+
+[6]
+File: chess.eps Graphic file (type eps)
+ <chess.eps>
+Underfull \hbox (badness 10000) in paragraph at lines 354--357
+
+ []
+
+File: tigre.eps Graphic file (type eps)
+<tigre.eps>
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [7]
+[8] [9] [10] (./example.aux) ) 
+Here is how much of TeX's memory you used:
+ 2984 strings out of 30846
+ 38066 string characters out of 445162
+ 90922 words of memory out of 1000001
+ 5887 multiletter control sequences out of 10000+30000
+ 21222 words of font info for 87 fonts, out of 400000 for 1000
+ 14 hyphenation exceptions out of 1000
+ 33i,10n,39p,294b,447s stack positions out of 300i,100n,500p,200000b,4000s
+
+Output written on example.dvi (10 pages, 43076 bytes).

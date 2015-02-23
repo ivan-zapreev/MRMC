@@ -1,0 +1,469 @@
+%&latex
+\documentclass{article}
+\usepackage[usenames]{color}
+\usepackage{gastex}
+
+\begin{document}
+
+% Peterson automaton
+
+\begin{center}
+\begin{picture}(85,33)(-20,-28)
+%   \put(-20,-28){\framebox(85,33){}}
+  \gasset{Nadjust=w,Nadjustdist=2,Nh=6,Nmr=1}
+  \node[Nmarks=i](A)(0,0){idle}
+  \node(B)(50,0){wait}
+  \node(C)(50,-20){wait}
+  \node[Nmarks=r](D)(0,-20){critical}
+ 
+  \drawedge(A,B){req1:=true}
+  \drawedge(B,C){turn:=2}
+  \drawedge[syo=-1,eyo=-1](C,D){turn=1?}
+  \drawedge[syo=1,eyo=1,ELside=r](C,D){req2=false?}
+  \drawedge(D,A){req1:=false}
+\end{picture}
+\end{center}
+
+% Petri Net and offsets
+
+\begin{center}
+\begin{picture}(110,50)(-25,-24)
+%   \put(-25,-24){\framebox(110,50){}}
+  \node(A)(-20,-7){$\bullet \bullet$}
+  \node(B)(-20, 7){$\bullet$}
+  \node(C)( 20,-7){}
+  \node(D)( 20, 7){}
+  \gasset{Nw=.7,Nh=7,Nmr=0,fillgray=0} % black rectangle
+  \gasset{ExtNL=y,NLdist=1,NLangle=90} % external label above the node
+  \node(Ta)(0,  0){$a$}
+  \node(Tb)(0,-20){$b$}
+  \node(Tc)(0, 20){$c$}
+  
+  \gasset{ELdistC=y,ELdist=0}
+  \drawedge[ELside=r,eyo=-1](A,Ta){\colorbox{white}{2}}\drawedge[eyo=1](B,Ta){}
+  \drawedge[syo=-1](Ta,C){}\drawedge[syo=1](Ta,D){}
+  {\gasset{curvedepth=4}\drawedge(C,Tb){}\drawedge(Tb,A){\colorbox{white}{2}}}
+  {\gasset{curvedepth=-4}\drawedge(D,Tc){}\drawedge[syo=1](Tc,B){}}
+  \drawbpedge[syo=-1,ELpos=70](Tc,-160,15,D,170,20){\colorbox{white}{3}}
+% offsets
+  \put(40,-15){\unitlength=1.2mm
+    \gasset{Nmr=0,Nfill=y,fillgray=0}
+    \node[Nw= 1,Nh=10](B)(0,20){}
+    \node[Nw= 1,Nh=10](C)(30,20){}
+    \node[Nw=10,Nh= 1](D)(15,0){}
+    \drawedge[syo=3,eyo=3,curvedepth=3](B,C){}
+    \drawedge[syo=1,eyo=1](B,C){}
+    \drawedge[syo=-1,eyo=-1](C,B){}
+    \drawbpedge[syo=4,eyo=4](B,165,30,C,15,30){}
+    \drawbpedge[syo=-3,exo=-3](B,0,10,D,90,10){}
+    \drawbpedge[syo=-3](C,180,10,D,90,10){}
+    \drawbpedge[sxo=3,eyo=-5](D,90,10,C,-90,10){}
+    \drawloop[sxo=-3,loopdiam=4,loopangle=-90](D){}
+    \drawloop[sxo= 3,loopdiam=4,loopangle=-90](D){}
+  }
+\end{picture}
+\end{center}
+
+% Diagram
+
+\begin{center}
+\begin{picture}(105,28)(-33,-3)
+%   \put(-33,-3){\framebox(105,28){}}
+  \gasset{Nframe=n,Nadjust=w,Nh=6,Nmr=0}
+  \node(L)(0,20){$\mathcal{L}$}
+  \node(F)(30,20){$[F^V\to F]$}
+  \node(O1)( 20,0){$(\mathcal{P}(R)^V\to 2^{M\times\mathcal{P}(R)})$}
+  \node(O2)(-20,0){$(\mathcal{P}(R)^V\to 2^M)$}
+  \node(B1)( 60,0){$(\mathcal{P}(R)^V\to F)$}
+
+  \drawedge[ELpos=40](L,F){$[\![ -]\!]$}
+  \drawedge(L,O1){$X_F$}
+  \drawedge(F,O1){$\chi$}
+  \drawedge[ELside=r](L,O2){$X_M$}
+  \drawedge[ELpos=55](O1,B1){$\sqcup$}
+  \drawedge[ELside=r,ELpos=53](O1,O2){$\mathrm{Re}$}
+\end{picture}
+\end{center}
+
+% and more ...
+
+\begin{center}
+\begin{picture}(120,52)(-35,-37)
+%   \put(-35,-37){\framebox(120,52){}}
+  \node[Nw=16,linecolor=Yellow,fillcolor=Yellow](A)(-20,0){initial}
+  \imark[iangle=200,linecolor=Peach](A)
+  \node[Nmr=0,Nw=14,fillgray=0.85,
+        dash={1}0](B)( 20,0){\textcolor{RedViolet}{final}}
+  \fmark[flength=10,fangle=-30,dash={3 1 1 1}0](B)
+  \node[Nadjust=wh,Nadjustdist=2,Nmr=3,Nmarks=r,linecolor=Green](C)(60,-20){$\left(
+    \begin{array}{ccc}
+    	 2 &  1 & 0  \\
+    	-1 &  0 & 1  \\
+    	 0 & -1 & 2
+    \end{array}
+    \right)$}
+  \rmark[linecolor=Green,rdist=1.4](C)
+  
+  \drawedge[curvedepth=5,linecolor=Red](A,B){\textcolor{Cyan}{curved}}
+  \drawedge[ELside=r,ELpos=35](A,B){straight}
+  \drawedge[curvedepth=-25,ELside=r,dash={1.5}0](A,B){far}
+  \drawloop[ELpos=75, loopangle=150, dash={0.2 0.5}0](A){loopCW}
+  \drawloop[loopCW=n,ELside=r,loopangle=30,dash={3 1.5}{1.5}](B){loopCCW}
+  \drawqbpedge[ELside=r,ELdist=0,dash={4 1 1 1}0](B,-90,C,180){qbpedge}
+  \drawloop[ELpos=70,loopangle=0](C){$b / 01$}
+  \drawloop[loopCW=n,ELpos=75,ELside=r,loopangle=-90,sxo=6](C){$a / 01$}
+  \drawloop[ELpos=75,loopangle=-90,sxo=-6](C){$b / 10 $}
+  \drawloop[loopangle=50](C){$b / 01$}
+  \drawloop[ELpos=75,loopangle=148](C){$b / 01$}
+\end{picture}
+\end{center}
+
+% Edges
+
+\begin{center}
+\begin{picture}(120,60)(-32,-14)
+%   \put(-32,-14){\framebox(120,60){}}
+  \node(A)(10,0){}\node(B)(40,0){}
+  \drawedge(A,B){straight}
+  \drawedge[curvedepth=8](A,B){positive curve depth}
+  \drawedge[curvedepth=-8,ELside=r](A,B){negative curve depth}
+  \drawloop[loopangle=180](A){180}
+  \drawloop[loopangle=0](B){0}
+ 
+  \node(A)(-15,30){}\node(B)(15,30){}
+  \drawqbedge(A,-15,50,B){qbedge}
+  \drawbcedge(A,-20,10,B,20,10){bcedge}
+  \drawloop[loopangle=210](A){210}
+  \drawloop[loopangle=90,loopCW=n,ELside=r](B){90}
+ 
+  \node(A)(40,30){}\node(B)(70,30){}
+  \drawbpedge[ELpos=30,ELdist=0](A,45,20,B,225,20){bpedge}
+  \drawbpedge[ELpos=30,ELside=r](A,210,30,B,-30,30){30}
+  \drawbpedge[ELpos=70,ELside=r](A,210,30,B,-30,30){70}
+  \drawloop[loopdiam=5,loopangle=120,ELpos=60](A){smaller}
+  \drawloop[loopdiam=10,loopangle=30,ELpos=30](B){larger}
+\end{picture}
+\end{center}
+
+% Nodes, colors, etc...
+
+\begin{center}
+\begin{picture}(105,70)(-15,-65)
+%   \put(-15,-65){\framebox(105,70){}}
+  \node[Nmarks=if](A)(0,0){1}
+  \node[Nw=15,Nh=6,Nmr=0](A)(25,0){rectangle}
+  \node[Nw=12,Nh=6,Nmr=3](A)(50,0){oval}
+
+  \node(B)(0,-15){Nadjust=n}
+  \node[Nadjust=w,Nmr=2](B)(25,-15){Nadjust=w}
+  \node[Nadjust=wh,Nmr=1](B)(50,-15){Nadjust=wh}
+  
+  \gasset{Nadjust=w,Nadjustdist=3}
+  \node[Nmarks=i,iangle=210,ilength=5](C)(0,-30){imark}
+  \imark[iangle=150,ilength=10,linecolor=Red](C)
+  \node[Nmarks=f,fangle=30,flength=5,linecolor=Green](C)(25,-30){fmark}
+  \fmark[fangle=-30,flength=10,linecolor=Blue](C)
+  \node(C)(50,-30){rmark}
+  \rmark[linecolor=Red](C)\rmark[rdist=1.4,linecolor=Green](C)
+  \node[Nmarks=ifr](C)(75,-30){all}
+
+  \node(D)(0,-45){framed}
+  \node[Nframe=n,fillcolor=Yellow](D)(25,-45){filled}
+  \node[fillcolor=Yellow](D)(50,-45){both}
+  \node[fillcolor=Yellow,
+        linecolor=Green](D)(75,-45){\textcolor{RedViolet}{RedViolet}}
+
+  \node[linewidth=0.5](E)(0,-60){Thick}
+  \node[linewidth=1,linegray=0.8](E)(25,-60){Gray}
+  \node[dash={1.5}0](E)(50,-60){Dash}
+  \node[dash={4 1 1 1}0,linecolor=Red](E)(75,-60){More dash}
+\end{picture}
+\end{center}
+
+% Arrows
+
+\begin{center}\unitlength=0.85mm
+\begin{picture}(60,40)(-30,-17)
+% \put(-30,-17){\framebox(60,40){}}
+  \drawline[AHangle=30,AHLength=3,AHlength=0,
+            ATnb=1,ATangle=90,ATLength=2,ATlength=0](-15,20)(15,20)
+  \drawline[AHnb=2,ATnb=2](-15,15)(15,15)
+  \drawline[AHnb=2,AHangle=30,AHLength=3,AHlength=0,AHdist=1,
+            ATnb=2,ATangle=30,ATLength=3,ATlength=0,ATdist=1](-15,10)(15,10)
+  \drawline[AHnb=1,AHangle=30,AHLength=3,AHlength=1,
+            ATnb=1,ATangle=140,ATLength=3,ATlength=1.5](-15,5)(15,5)
+  \drawline[AHnb=2,AHangle=30,AHLength=3,AHlength=0,AHdist=1,
+            ATnb=2,ATangle=150,ATLength=3,ATlength=0,ATdist=1](-15,0)(15,0)
+  \node(A)(-15,-10){}\node(B)( 15,-10){}
+  \drawbpedge[AHnb=6,ATnb=6](A,60,25,B,240,25){}
+  \gasset{AHnb=1,AHangle=30,AHLength=3,AHlength=0,
+          ATnb=1,ATangle=30,ATLength=3,ATlength=0}
+  \drawloop[loopangle=180](A){}
+  \gasset{AHnb=3,AHangle=30,AHLength=3,AHlength=1.5,AHdist=1.8,
+          ATnb=3,ATangle=30,ATLength=3,ATlength=1.5,ATdist=1.8}
+  \drawloop[loopangle=0](B){}
+\end{picture}
+% \end{center}
+% 
+% % Node label
+% 
+% \begin{center}
+\begin{picture}(80,40)(-20,-20)
+%   \put(-20,-20){\framebox(80,40){}}
+  \node[Nh=30,Nw=30,Nmr=15](D)(0,0){}
+  \gasset{ExtNL=y,NLdist=1,AHnb=0,ilength=-2}
+  \nodelabel[NLangle=  0](D){3}  \imark[iangle=  0](D)
+  \nodelabel[NLangle= 30](D){2}  \imark[iangle= 30](D)
+  \nodelabel[NLangle= 60](D){1}  \imark[iangle= 60](D)
+  \nodelabel[NLangle= 90](D){12} \imark[iangle= 90](D)
+  \nodelabel[NLangle=120](D){11} \imark[iangle=120](D)
+  \nodelabel[NLangle=150](D){10} \imark[iangle=150](D)
+  \nodelabel[NLangle=180](D){9}  \imark[iangle=180](D)
+  \nodelabel[NLangle=210](D){8}  \imark[iangle=210](D)
+  \nodelabel[NLangle=240](D){7}  \imark[iangle=240](D)
+  \nodelabel[NLangle=270](D){6}  \imark[iangle=270](D)
+  \nodelabel[NLangle=300](D){5}  \imark[iangle=300](D)
+  \nodelabel[NLangle=330](D){4}  \imark[iangle=330](D)
+  
+  \node[Nh=30,Nw=30,Nmr=15](B)(40,0){}
+  \gasset{ExtNL=n,NLdist=13}
+  \nodelabel[NLangle=  0](B){3}
+  \nodelabel[NLangle= 30](B){2}
+  \nodelabel[NLangle= 60](B){1}
+  \nodelabel[NLangle= 90](B){12}
+  \nodelabel[NLangle=120](B){11}
+  \nodelabel[NLangle=150](B){10}
+  \nodelabel[NLangle=180](B){9}
+  \nodelabel[NLangle=210](B){8}
+  \nodelabel[NLangle=240](B){7}
+  \nodelabel[NLangle=270](B){6}
+  \nodelabel[NLangle=300](B){5}
+  \nodelabel[NLangle=330](B){4}
+\end{picture}
+\end{center}
+
+% Nodes whose shape is a regular polygon
+
+\begin{center}
+\begin{picture}(120,30)(0,0)
+%   \put(0,0){\framebox(120,30){}}
+  \rpnode[polyangle=90,Nmarks=i,iangle=-90](A)(5,14)(3,5){A}
+  \rpnode[arcradius=2,Nmarks=r](B)(35,17)(6,10){B}
+  \nodelabel[ExtNL=y,NLangle=30,NLdist=0.5](B){B}
+  \nodelabel[ExtNL=y,NLangle=60,NLdist=0.5](B){B}
+  \rpnode[arcradius=2,polyangle=90](C)(70,12)(5,7){C}
+  \imark[iangle=198](C)\fmark[fangle=18](C)
+  \rpnode[Nmarks=fr,fangle=45](D)(105,15)(4,7){D}
+  \drawloop(A){$a$}
+  \drawloop[loopangle=90](C){$c$}
+  \drawloop[loopangle=-45](D){$d$}
+  \drawedge(A,B){$x$}
+  \drawbpedge(B,-30,30,C,140,30){$y$}
+  \drawqbpedge(C,37,D,83){$z$}
+  \drawedge[curvedepth=14,ELside=r](D,A){}
+\end{picture}
+\end{center}
+
+% polygons and closed curves
+
+\begin{center}
+\begin{picture}(120,40)(0,0)
+%   \put(0,0){\framebox(120,40){}}
+  \put(3,3){ 
+    \unitlength=8mm
+    \drawpolygon[fillcolor=Green,Nframe=n,arcradius=.3](0,0)(0,2)(1,3)(0,4)(2,4)(2,2)(4,0)(2,0)(1,1)
+    \drawpolygon(0,0)(0,2)(1,3)(0,4)(2,4)(2,2)(4,0)(2,0)(1,1)
+    \drawccurve[linecolor=Red](0,0)(0,2)(1,3)(0,4)(2,4)(2,2)(4,0)(2,0)(1,1)
+  }
+  \put(55,20){ 
+    \unitlength=1.4mm
+    \drawpolygon[fillcolor=Green,Nframe=n,arcradius=2](-10,-10)(10,10)(-10,10)(10,-10)
+    \drawpolygon(-10,-10)(10,10)(-10,10)(10,-10)
+    \drawccurve[linecolor=Red](-10,-10)(10,10)(-10,10)(10,-10)
+  }
+  \put(100,19){ 
+    \unitlength=20mm
+    \drawccurve[fillcolor=Yellow,linecolor=Red](0,1)(0.59,-0.8)(-0.95,0.3)(0.95,0.3)(-0.59,-0.8)
+    \drawpolygon(0,1)(0.59,-0.8)(-0.95,0.3)(0.95,0.3)(-0.59,-0.8)
+  }
+\end{picture}
+\end{center}
+
+% curves
+
+\begin{center}
+\begin{picture}(120,40)(0,0)
+%   \put(0,0){\framebox(120,40){}}
+  \put(2,3){ 
+    \unitlength=8mm
+    \drawline[AHnb=0](0,0)(0,2)(1,3)(0,4)(2,4)(2,2)(4,0)(2,0)(1,1)
+    \drawcurve[linecolor=Red,AHnb=0](0,0)(0,2)(1,3)(0,4)(2,4)(2,2)(4,0)(2,0)(1,1)
+  }
+  \put(55,16){ 
+    \unitlength=1.5mm
+    \drawline[AHnb=0](-10,-10)(10,10)(-10,10)(10,-10)
+    \drawcurve[linecolor=Red,ATnb=3,AHnb=4](-10,-10)(10,10)(-10,10)(10,-10)
+  }
+  \put(100,19){ 
+    \unitlength=20mm
+    \drawline[AHnb=0](0.95,0.3)(-0.59,-0.8)(0,1)(0.59,-0.8)(-0.95,0.3)
+    \drawcurve[linecolor=Red](0.95,0.3)(-0.59,-0.8)(0,1)(0.59,-0.8)(-0.95,0.3)
+  }
+\end{picture}
+\end{center}
+
+% Various macros
+
+\begin{center}
+\begin{picture}(120,60)(-60,-30)
+% \put(-60,-30){\framebox(120,60){}}
+  \drawline(-60,0)(60,0)
+  \drawline(0,-30)(0,30)
+  \drawrpolygon[polyangle=90,fillcolor=Blue](-9,5)(3,8)
+  \drawrpolygon(-9,22)(8,7)
+  \drawrpolygon(-9,22)(8,6)
+  \drawrpolygon(-9,22)(8,5)
+  \drawrpolygon[polyangle=18,arcradius=5](-27,7)(5,7)
+  \drawrpolygon[fillcolor=Green](-27,23)(4,7)
+  \put(-48,15){ 
+    \unitlength=14mm
+    \gasset{Nfill=y,fillcolor=Yellow,Nframe=y,arcradius=.1}
+    \drawpolygon(0,1)(0.59,-0.8)(-0.95,0.3)(0.95,0.3)(-0.59,-0.8)
+  }
+  \drawline[AHLength=4,AHlength=0,AHangle=30,linewidth=.8](5,25)(15,15)(5,15)(15,5)
+  \drawline[AHLength=4,AHlength=0,AHangle=30,linecolor=White](5,25)(15,15)(5,15)(15,5)
+  \drawline[arcradius=1](17,25)(27,15)(17,15)(27,5)
+  \drawline[linecolor=Red](30,10)(50,20)(25,25)(55,5)
+  \drawline[AHLength=4,AHlength=0,AHangle=30,linewidth=.3](10,28)(35,28)
+  \drawline[AHnb=0,linewidth=.9](10,28)(34.5,28)
+  \drawline[AHnb=0,linewidth=.2,linecolor=White](10,28)(34.5,28)
+  \drawcbezier[ATnb=1](-50,-5,-30,-5,-30,-25,-10,-25)
+  \drawcbezier[AHnb=0,dash={1.5}0](-50,-25,-30,-25,-30,-5,-10,-5)
+  \drawqbezier(31,-20,50,-20,50,-1)
+  \drawqbezier[AHnb=0,linecolor=Green](31,-20,31,-1,50,-1)
+  \drawcircle[Nfill=y,fillcolor=Yellow](40,-25,10)
+  \drawrect[Nfill=y,fillcolor=Yellow,dash={1.5}0](5,-5,25,-15)
+  \drawoval(15,-25,20,10,3)
+\end{picture}
+\end{center}
+
+% Tricks: multiput and variables
+
+\begin{center}
+  \unitlength=0.7mm
+\begin{picture}(60,46)(0,-3)
+%   \put(0,-3){\framebox(60,46){}}
+  {\gasset{AHnb=0}
+    \drawline(0,0)(60,0)
+    \drawline(0,20)(60,20)
+    \drawline(0,40)(60,40)}
+  \gasset{Nw=1.5,Nh=1.5,Nframe=n,Nfill=y}
+  \multiput(0,0)(10,0){5}{%
+    \node(A)(0,0){}\node(B)(5,20){}
+    \drawedge(A,B){}
+    }
+  \multiput(10,20)(10,0){5}{%
+    \node(A)(0,0){}\node(B)(5,20){}
+    \drawedge(A,B){}
+    }
+\end{picture}
+  \qquad
+  \unitlength=1mm
+\begin{picture}(50,30)(-5,0)
+%   \put(-5,0){\framebox(50,30){}}
+  \def\ax{5}\def\ay{5}\def\bx{35}\def\by{25}%
+  \node(a)(\ax,\ay){$a$}\node(b)(\bx,\by){$b$}
+  \drawedge(a,b){}
+  \drawloop[loopdiam=6,loopangle=180](a){}
+  \drawloop[loopdiam=6,loopangle=0](b){}
+
+  \def\ax{5}\def\ay{25}\def\bx{35}\def\by{5}%
+  \node(a)(\ax,\ay){$a$}\node(b)(\bx,\by){$b$}
+  \drawedge(a,b){}
+  \drawloop[loopdiam=6,loopangle=180](a){}
+  \drawloop[loopdiam=6,loopangle=0](b){}
+\end{picture}
+\end{center}
+
+% Compatibility with gastex 1.0
+
+\begin{center}\compatiblegastexun
+\begin{picture}(80,55)(-20,-15)
+\thinlines
+\put(-20,-15){\framebox(80,55){}}
+
+\letstate A=(0,0)   \drawinitialstate(A){1}\drawfinalstate[b](A){}
+\letstate B=(20,0)  \drawrepeatedstate(B){2}
+\letstate C=(40,0)  \drawfinalstate(C){3}
+\letstate D=(0,20)  \drawrepeatedstate(D){4}
+\letstate E=(20,18) \drawstate(E){5}
+\letstate[8,6] F=(40,20) \drawrepeatedstate(F){6}
+
+\drawloop[b](B){$A,a,\alpha$}    \drawloop[l](D){$A,\varepsilon$}
+{ \setpsdash(1) \drawloop(E){$B,b,\beta$} }
+\drawloop[r](F){$B,\varepsilon$}
+
+\drawtrans[r](A,B){$D,d,\delta$} \drawtrans[r](B,C){$D,\varepsilon$}
+{ \settransdecal{1}
+  \drawtrans(C,F){$F,f,\varphi$} \drawtrans(F,C){$G,g,\gamma$} }
+\drawtrans(B,E){$\varepsilon$}   \drawtrans(E,F){$E,\varepsilon$}
+{ \setprofcurve{0} \drawcurvedtrans[r](E,D){$F,\varepsilon$} }
+
+\drawcurvedtrans(A,D){$C,c,\gamma$}
+{ \setpsdash(3) \drawcurvedtrans(D,A){$C,\varepsilon$} }
+{ \setprofcurve{-15} \drawcurvedtrans[r](F,D){$G_1,g_1,\gamma_1$} }
+\end{picture}
+\end{center}
+
+\begin{center}\compatiblegastexun
+\unitlength=1mm
+\begin{picture}(90,30)(-5,-16)
+\thinlines
+\put(-5,-16){\framebox(90,30){}}
+
+\setvertexdiam{6}
+\letvertex A=(0,0)     \drawcircledvertex(A){$a$}
+\letvertex B=(20,0)    \drawvertex(B){$b$}
+\letvertex[9] C=(40,0) \drawcircledvertex(C){$c$}
+\letvertex D=(60,0)    \drawcircledvertex(D){$d$}
+\letvertex E=(80,0)    \drawcircledvertex(E){$e$}
+
+\drawundirectededge(A,B){7}
+\drawundirectededge(B,C){-11}
+\drawundirectededge(C,D){13}
+\drawundirectededge(D,E){2}
+
+\setprofcurve{10}
+\drawundirectedcurvededge(A,C){3}
+\drawundirectedcurvededge(C,E){8}
+\setprofcurve{-10}
+\drawundirectedcurvededge[r](B,D){-5}
+
+\drawundirectedloop[b](A){17}
+\end{picture}
+\end{center}
+
+% Compatibility with pspictpg
+\begin{center}\compatiblepspictpg
+\begin{picture}(80,80)(-40,-40)
+% \put(-40,-40){\framebox(80,80){}}
+  \drawvector(-40,0)(40,0)
+  \drawvector(0,-40)(0,40)
+  \drawline(-30,-30)(30,30)
+  \cbeziervector(-30,-20)(-30,0)(-10,0)(-10,20)
+  {\setpsdash(3)\cbezier(-30,20)(-30,0)(-10,0)(-10,-20)}
+  \qbeziervector(1,-20)(20,-20)(20,-1)
+  \qbezier(1,-20)(1,-1)(20,-1)
+  \drawcircle(10,30)(10)
+  \put(-20,-30){\circle{10}}
+  \put(25,5){\line(1,3){8}}
+  \put(25,5){\vector(1,2){8}}
+  \setpsgray{0.5}
+  \drawdisk(-30,30)(10)
+  \put(20,-30){\circle*{10}}
+\end{picture}
+\end{center}
+
+\end{document}
+
+

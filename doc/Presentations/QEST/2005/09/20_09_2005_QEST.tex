@@ -1,0 +1,246 @@
+\documentclass{beamer}
+
+\mode<article> % only for the article version
+{
+	\usepackage{fullpage}
+	\usepackage{hyperref}
+}
+
+\mode<presentation>
+{
+	\usetheme{boxes}
+	\usetheme{JuanLesPins}
+}
+
+\usepackage{astron}
+\usepackage{gastex}
+\usepackage{multirow}
+\usepackage{graphicx}
+
+\usepackage{pgf,pgfarrows,pgfnodes,pgfautomata,pgfheaps,pgfshade}
+\setbeamercovered{dynamic}
+
+%Include Macro commands
+\input{../../../../global_etmcc.tex}
+
+\title{A Markov Reward Model Checker}
+\author{
+   Joost-Pieter Katoen{$^{\ddagger,\dagger}$},
+   Maneesh Khattri{$^{\dagger}$}
+   and Ivan S.\ Zapreev{$^{\dagger}$}
+}
+\date{
+	 {\small
+	 	$^{\ddagger}$ RWTH Aachen, Germany \\
+		$^{\dagger}$ University of Twente, The Netherlands
+	} \newline
+	{\tiny
+		\today
+	}
+}
+
+\begin{document}
+
+\bibliographystyle{astron}
+
+\frame{\titlepage}
+
+\frame<1>[label=rewex]{
+	\frametitle{Verification of Markov Reward Models}
+	
+	\only<1>{
+		\begin{block}{MRMs are underneath:}
+			\begin{itemize}
+				\item Reward extensions of stochastic process algebras
+				\item Stochastic reward nets
+				\item Etc.
+			\end{itemize}
+		\end{block}
+	
+		\begin{block}{Rewards:}
+			\begin{minipage}[t]{0.35\linewidth}
+				\begin{center}
+					\begin{itemize}
+						\item {\color[rgb]{0,0,1} State} rewards
+					\end{itemize}
+				\end{center}
+			\end{minipage}
+			\begin{minipage}[t]{0.60\linewidth}
+				\begin{center}
+						\begin{itemize}
+						\item {\color[rgb]{0,0,1} Impulse} rewards \hfill \hyperlink{rewex<2>}{\beamergotobutton{Example}}
+						\end{itemize}
+				\end{center}
+			\end{minipage}
+		\end{block}
+	
+		\begin{block}{Logics:}
+			\begin{description}
+				\item[PRCTL] - Probabilistic Reward Computation Tree Logic,\\ PCTL $\subset$ PRCTL.
+				\item[CSRL] - Continuous Stochastic Reward Logic,\\ CSL $\subset$ CSRL.
+			\end{description}
+		\end{block}
+	}
+	
+	\only<2>{
+		%Reward example, curve
+		\begin{center}
+			\hyperlink{rewex<1>}{\scalebox{0.9}[0.9]{\input{qest_05_figure_05.tex}}}
+		\end{center}
+	}
+}
+
+\frame{
+	\frametitle{Allowed properties}
+
+	\begin{block}{PRCTL extends PCTL with:}
+		\begin{enumerate}
+			\item The expected reward rate at a time instant
+			\item The long-run expected reward rate per time unit
+			\item The instantaneous reward at a time instant
+			\item The expected accumulated reward at a time instant
+		\end{enumerate} 
+	\end{block}
+	
+	\begin{block}{CSRL extends CSL with}
+		\begin{enumerate}
+			\item {\color[rgb]{0,1,0}PRCTL}
+			\item The probability to reach one of the goal states (via indicated 
+allowed states) within time $t$ while having earned an accumulated reward
+that does not exceed $r$ is larger than $p$
+		\end{enumerate}
+	\end{block}
+}
+
+\frame{
+	\frametitle{Examples}
+	
+	\definecolor{MyColor1}{cmyk}{0.5,0.3,0.3,0.2}
+	\definecolor{MyColor2}{cmyk}{0.1,0.8,0,0.1}
+
+	{\small
+	\begin{exampleblock}{Example: PRCTL}
+		$\Y{3}{[2,5]}{\it {\color{MyColor1} \Phi}}$ - \emph{the expected accumulated cost in ${\color{MyColor1} \Phi}$-states within 
+3 hops is between 2 and 5}
+	\end{exampleblock}
+	}
+	
+	{\tiny
+	\begin{center}
+		\begin{picture}(80,25)(0,0)
+			\def\x1{10}\def\y1{10}
+			\node[fillcolor= MyColor1](n1)(\x1,\y1){$1$}
+			\def\x2{40}\def\y2{10}
+			\node[fillcolor= MyColor1](n2)(\x2,\y2){$0$}      
+			\def\x3{70}\def\y3{10}
+			\node[fillcolor= MyColor2](n3)(\x3,\y3){$2$}
+      
+			\gasset{ExtNL=y, NLdist=1, ilength=-2}
+			\nodelabel[NLangle=270](n1){$\it {\color{MyColor1} \Phi}$, {\color[rgb]{1,0,0}1.5}}
+			\nodelabel[NLangle=270](n2){$\it {\color{MyColor1} \Phi}$, {\color[rgb]{1,0,0}3.0}}
+			\nodelabel[NLangle=270](n3){$\it {\color{MyColor2} \Psi}$, {\color[rgb]{1,0,0}2.1}}
+    
+			\drawedge[curvedepth=8](n2,n1){{\color[rgb]{0,0,1}0.9}, {\color[rgb]{0,0.5,0} 0.25 }}
+			\drawedge[curvedepth=8](n1,n2){{\color[rgb]{0,0,1}0.05}, {\color[rgb]{0,0.5,0} 0.25 }}
+			\drawedge(n2,n3){{\color[rgb]{0,0,1}0.05}, {\color[rgb]{0,0.5,0} 0.02 }}
+			\drawloop[loopangle=180](n1){{\color[rgb]{0,0,1}0.95}, {\color[rgb]{0,0.5,0} 0.5 }}
+			\drawloop[loopangle=90](n2){{\color[rgb]{0,0,1}0.05}, {\color[rgb]{0,0.5,0} 0.025 }}
+			\drawloop[loopangle=0](n3){{\color[rgb]{0,0,1}1.0}, {\color[rgb]{0,0.5,0} 0.0 }}
+		\end{picture}
+	\end{center}
+	}
+	
+	{\small
+	\begin{exampleblock}{Example: CSRL}
+		$\Prob{\geq}{0.3}{{\it  {\color{MyColor1} \Phi}}\:{\cal U}^{\leq 4}_{(23, \infty )} {\it  {\color{MyColor2} \Psi}}}$ - \emph{a {$ {\color{MyColor2} \Psi}$-state} is reached with probability at least $0.3$ in at most 4 time units along an $ {\color{MyColor1} \Phi}$-path with total cost $>$ 23}
+	\end{exampleblock}
+	}
+}
+
+\frame{
+	\frametitle{Implementation}
+	\begin{block}{Algorithms:}
+		\begin{tabbing}
+			Sparse matrix \= - compressed row, compressed column \\
+			{\color[rgb]{0,0,1}PCTL} \> - \cite{HanssonJ_FAC94} \\
+			{\color[rgb]{1,0,0}PRCTL} \> - \cite{AndovaHK_FORMATS03} \\
+			{\color[rgb]{0,0,1}CSL} \> - \cite{BaierHHK_TSE03} \\
+			{\color[rgb]{1,0,0}CSRL} \> - Discretization \cite{TijmsV_99},\\ \> Uniformization \cite{QureshiS_ISFTC96}
+		\end{tabbing}
+	\end{block}
+
+	\begin{block}{{\color[rgb]{0,1,0} Improvements:}}
+		\begin{itemize}
+			\item Search for bottom strongly connected components
+			\item On-the-fly steady state detection
+			\item Path graph representation
+		\end{itemize}
+	\end{block}
+}
+
+\frame<1>[label=cmdline]{
+	\frametitle{A command-line tool}
+
+	\only<1>{
+		{\small
+      			\begin{minipage}[t]{0.48\linewidth}
+				\begin{block}{Input files:}
+				{\color[rgb]{0,0,1}\tt .tra} - the probability/rate matrix \\
+				{\color[rgb]{0,0,1}\tt .lab} - the state-labeling \\
+				{\color[rgb]{0,0,1}\tt .rew} - the state rewards \\
+				{\color[rgb]{0,0,1}\tt .rewi} - the impulse rewards
+				\end{block}
+				\begin{example}
+					\begin{center}
+						\hyperlink{cmdline<2>}{\includegraphics[scale=0.3]{qest_05_figure_02_1.eps}}
+					\end{center}
+				\end{example}
+	       	\end{minipage} 
+	       }
+       	\hfill
+	       \begin{minipage}[t]{0.47\linewidth}
+			\begin{center}
+				%\includegraphics[scale=0.55, angle=0]{qest_05_figure_01.eps}
+				\includegraphics[scale=0.29, angle=0]{mrmc_architecture.eps}
+			\end{center}
+       	\end{minipage}
+	}
+	
+	\only<2>{
+		\begin{center}
+			\hyperlink{cmdline<1>}{\includegraphics[scale=0.7]{qest_05_figure_02_1.eps}}
+		\end{center}
+	}
+}
+
+\frame{
+	\frametitle{CSL logic: $\pUp{0}{t}$}
+	
+		\begin{center}
+			\includegraphics[scale=0.75]{qest_05_figure_03.eps}
+		\end{center}
+}
+
+\frame{
+	\frametitle{CSRL logic: $\pUrp{0}{t}{0}{r}$}
+	
+		\begin{center}
+			\scalebox{0.9}[0.9]{\input{qest_05_figure_04.tex}}
+		\end{center}
+}
+
+{\tiny \bibliography{../../../../BibTex/global_etmcc}}
+
+%APPENDIX
+\appendix
+
+\AtBeginSubsection{}
+
+\section{\appendixname}
+
+\againframe<beamer| beamer:2>{rewex}
+
+\againframe<beamer| beamer:2>{cmdline}
+
+\end{document}
+ 

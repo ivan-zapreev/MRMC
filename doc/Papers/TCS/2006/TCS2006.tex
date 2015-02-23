@@ -1,0 +1,1318 @@
+ %Required for IEEE final version:
+\documentclass{entcs}
+
+\newcommand{\Section}[1]{\section{#1}}
+\newcommand{\SubSection}[1]{\subsection{#1}}
+
+%My packages
+\usepackage{appendix}
+\usepackage{entcsmacro}
+\usepackage{verbatim}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{gastex}
+\usepackage{multirow}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\input{../../../global_etmcc.tex}
+
+\def\lastname{Katoen and Zapreev}
+
+\begin{document}
+
+\bibliographystyle{abbrv}
+
+	\begin{frontmatter}
+		\title{Safe On-The-Fly Steady-State Detection for Time-Bounded Reachability}
+		
+		\author[Aachen,Twente]{Joost-Pieter Katoen}
+		\author[Aachen,Twente]{Ivan S.\ Zapreev}
+
+		\address[Aachen]{Software Modeling and Verification Group\\ RWTH Aachen\\ Aachen, Germany}
+		\address[Twente]{Formal Methods and Tools Group\\ University of Twente\\ Enschede, The Netherlands}
+		
+		\begin{abstract}
+			The time-bounded reachability problem for continuous-time Markov chains (CTMCs) amounts to determine the probability to reach a (set of) goal state(s) within a given time span, such that prior to reaching the goal certain states are avoided. Efficient algorithms for time-bounded reachability are at the heart of probabilistic model checkers such as PRISM and ETMCC. For large time spans, on-the-fly steady-state detection is commonly applied. To obtain correct results (up to a given accuracy), it is essential to avoid detecting premature stationarity. This paper gives a detailed account of criteria for  steady-state detection in the setting of time-bounded reachability. New results are obtained for forward and backward reachability algorithms. As a spin-off of this study, more exact error bounds for on-the-fly steady-state detection during CTMC transient analysis are reported. Moreover, by exploiting the structure of the CTMC, a \emph{precise} procedure for steady-state detection for time-bounded reachability is obtained. Using this technique, premature stationarity never occurs, at the prize of doubling the computation time (prior to reaching steady-state) for the backward algorithm and at negligible prize for the forward algorithm. Experiments with two benchmark problems show the impact of these results in probabilistic model checking.
+		\end{abstract}
+	\end{frontmatter}
+
+\Section{Introduction}
+
+When performing transient analysis for a continuous-time Markov chain (CTMC), it is common practice---in particular in case of large time spans---to use a built-in steady-state detection technique \cite{MalhotraMT_MR94,YounesKNP_STTT05}. 
+The underlying idea is to be able to detect whether the CTMC has reached an equilibrium before the finish of the (large) time bound. Whenever such equilibrium is detected, the transient computation can be stopped thus saving expensive computational steps. 
+The criteria for detecting such equilibria when guaranteeing a given overall inaccuracy are, however, not always clear and may lead to the detection of premature equilibria. 
+This may happen, for instance, when the probability mass in the CTMC under consideration only changes slightly in a series of computational steps due to a ``slow'' movement.
+
+Why is on-the-fly steady-state detection of importance for probabilistic model checking \cite{Kwiatkowska_SLCS03}?
+One of the key issues in the model checking of continuous-time probabilistic models such as 
+CTMCs is the \emph{time-bounded reachability problem}. 
+This entails to determine the probability to reach a (set of) goal state(s) within a given time span, 
+such that prior to reaching the goal certain states are avoided. 
+This corresponds to a probabilistic variant of time-bounded until formulae as they are used in 
+e.g., the verification of timed automata.
+For CTMCs, the calculation of such probabilities can be reduced to a transient analysis on a 
+modified CTMC \cite{BaierHHK_TSE03}. 
+In case of local model checking, a transient analysis needs to be carried out for a single state 
+only.
+This can be efficiently done in a forward manner, i.e., starting from the state of interest. 
+For global model checking, the validity of a logical property needs to be checked in every state 
+and thus this probability must be computed for all states. 
+Doing so in a backward fashion yields an improvement of ${\cal O}(N)$ over-performing the forward algorithm $N$ times,where $N$ is the size of the state space \cite{KatoenKNP_LNCS01}.
+
+As checking time-bounded reachability properties reduces to transient analysis, on-the-fly steady-state detection can be exploited in probabilistic model checking.
+Probabilistic model checkers such as PRISM \cite{KwiatkowskaNP_QEST04}, ETMCC \cite{HermansKMS_IJSTTT03} and its variants for stochastic
+Petri nets (such as GreatSPN \cite{DAprileDS_DS04} and the APNN Toolbox \cite{BuchholzFKT_MMECCS03}) have adopted this technique
+for model checking CSL (Continuous Stochastic Logic \cite{AzizSSB_ACMTCL00,BaierHHK_TSE03}), a variant of CTL.
+These model checkers have basically adopted steady-state detection \emph{as it is}, without 
+tailoring it to the specific nature of time-bounded reachability.
+Other tools that support model checking CSL, such as VESTA \cite{SenVA_CAV05} and Ymer \cite{Younes_CAV05}, use a statistical testing approach and do not support steady-state detection. 
+
+In this paper, we present a detailed analysis of the use of on-the-fly steady-state detection in this
+setting. We start by revisiting and slightly sharpening a (well-known) result by Fox-Glynn \cite{FoxG_ACM88} that is used in computing Poisson probabilities, an essential ingredient in CTMC transient analysis. Based on this result, we prove criteria to decide whether an equilibrium has been reached for both the backward and forward reachability algorithm. These criteria sharpen known results for on-the-fly steady-state detection for CTMC transient analysis \cite{MalhotraMT_MR94} and for CSL model checking \cite{YounesKNP_TACAS04,YounesKNP_STTT05}. Furthermore, a simple procedure is proposed to safely detect equilibria. This is done by exploiting the structure of the CTMC that is obtained when reducing time-bounded reachability to transient analysis. Note that this algorithm is correct in the sense that premature stationarity is \emph{never} detected. Although for backward computations the computation time is doubled (prior to reaching the steady-state, if any at time $t'$), and one additional probability vector of size $N$ is needed, the computation time from approximately $2 \cdot t'$ on remains constant. For large time spans ($\geq 2\cdot t'$), verification time is thus also reduced.
+
+Experimental results complete this paper and show the impact of our theoretical achievements. By means of an artificial, though extremely simple CTMC, we show that various existing probabilistic model checkers detect a premature equilibrium resulting in incorrect verification results. We report similar observations for the workstation cluster \cite{HaverkortHK_SRDS00,BuchholzKKT_JLAP03,YounesKNP_TACAS04,KwiatkowskaNP_IMTTCPE02,Prism_WC05}, an example that has established itself as a benchmark problem for probabilistic model checking, and confirm a similar phenomenon reported in a recent analysis of the IEEE 802.11 group communication protocol \cite{MassinkKL_DSN04}. These experiments clearly indicate the benefits of our algorithm. Based on these observations, we firmly believe that the results in this paper improve current probabilistic model checking technology.
+
+\emph{Organization of the paper.} 
+Section \ref{s:concepts} introduces relevant concepts of CTMCs and their discrete variant, DTMCs. 
+Section \ref{s:fox_glynn_ref} presents the slight refinement of the Fox-Glynn error-bound. 
+Section \ref{s:time_b_r} introduces the time-bounded reachability problem, its forward and
+backward algorithm, and the use of on-the-fly steady-state detection. 
+Sections \ref{s:ss_detect_improved} and \ref{s:osf} contain the main contribution of this paper;
+these sections present new criteria for detecting equilibria during time-bounded reachability,
+and the algorithm to safely detect steady state.    
+Section \ref{s:examples} reports on the conducted experiments, and Section \ref{s:concl} concludes.
+
+The proofs omitted from the main text are included in the Appendix\footnote{The Appendix is included  for convenience of the reviewer and may be omitted from the final version.}.
+
+This paper is an extended version of \cite{KatoenZ_QEST06}, that appeared in the proceedings of the 3rd International Conference on the Quantitative Evaluation of SysTems (QEST) 2006, Riverside, US.
+
+\Section{Markov chain preliminaries \label{s:concepts}}
+
+		This section recalls stationary probabilities for DTMCs, transient probabilities of CTMCs, and some related concepts.   For more information we refer to standard textbooks on Markov chains \cite{Tijms_03,Haverkort_98}.  Let $S = \left\{1, \ldots,N \right\}$ be a finite set of state indexes with $|S|=N$.
+	
+	\SubSection{Discrete-time Markov chains}
+
+		\begin{definition}
+		A Discrete-Time Markov Chain (\emph{DTMC}) is a tuple $\DTMC$ with finite set $S$ of states and state-transition probability matrix $\mP : S \times S \rightarrow \left[0,\:1 \right]$, where $\mP=\left(p_{i,j}\right)$ and $\forall i \in S : \sum_{j \in S} p_{i,j}=1$.
+		\end{definition}
+		
+		The matrix entry $p_{i,j}$ denotes the probability to move from state $i$ to state $j$ in one step.  Let $\vpO$ denote the initial probability distribution of $\DTMC$, i.e., $\pOi$ denotes the probability to be initially in state $i$.
+
+		\begin{definition}
+		The \emph{limiting} state-probability of  DTMC $\DTMC$ is a vector $\vppO$ such that:
+			\begin{equation}
+				\vppO = lim_{n \to \infty} \: \vpO \cdot \mP^{n}
+				\label{eq:ssl_dtmc}
+			\end{equation}
+		\end{definition}
+		
+		Whenever this limit exists, it can be obtained by solving the system of linear equations:
+		
+		\begin{equation}
+			\vp = \vp \cdot \mP \text{, }\sum_{i \in S} p_{i} = 1
+			\label{eq:sse_dtmc}
+		\end{equation}
+				
+		In case the limit (\ref{eq:ssl_dtmc}) does not exist, the equation (\ref{eq:sse_dtmc}) may still have a solution.  The solution of equation (\ref{eq:sse_dtmc}) is also known as \emph{stationary} or \emph{steady-state} distribution.	
+		In general, the limiting state-probability $\ppOi$ can be interpreted either as the proportion of time the DTMC is in state $i$ on the long run or, alternatively, as the probability that the DTMC is in state $i$ when taking a snapshot after a long time.  The vector $\vp$ in equation (\ref{eq:sse_dtmc}) is the left eigenvector of $\mP$ that corresponds to the unit eigenvalue.  As $\mP$ is a stochastic matrix, $\mP$ always has a unit eigenvalue, and no other eigenvalue exceeds it in modulus.
+		
+		\begin{theorem}
+			\cite{Haverkort_98} An irreducible and aperiodic finite DTMC has a unique limiting distribution (\ref{eq:ssl_dtmc}).  This distribution coincides with the steady-state distribution and does not depend on the initial distribution $\vpO$.
+		\end{theorem}
+		
+		Informally, \emph{irreducible} means that every state is reachable from every other state, (i.e. the underlying graph is strongly connected).  A DTMC is periodic if one of its states is periodic.  State $i$ is periodic if for some $d > 1$ it holds that the probability to return to state $i$ in $n$ steps is 0, for all $n$ such that $n \mbox{ \sl mod } d \neq 0$.  A sufficient condition for an irreducible DTMC to be \emph{aperiodic} is that there exists at least one state with a self loop. A possible way to determine the steady-state probabilities for a DTMC is to compute the dominant (eigenvalue, eigenvector) pair of $\mP$.  This is described in the following.
+		
+		\paragraph{The Power method. \label{sss:power_method}}
+		The Power method \cite{Stewart_94} is a well-known numerical technique for computing the dominant eigenvalue and its eigenvector.
+		In case of a stochastic matrix $\mP$, it amounts to:
+		\begin{equation}
+			\vxi{m} = \vxi{m{-}1}{\cdot}\mP \nonumber
+		\end{equation}
+		For aperiodic $\mP$, convergence is guaranteed.  If, in addition, $\mP$ is irreducible, then the result does not depend on the initial vector $\vxi{0}$.
+		According to \cite{Stewart_94}, the number $K$ of iterations required to satisfy a tolerance criterion $\varepsilon > 0$ may be approximately obtained as:
+		\begin{equation}
+			K = \dfrac{\log_{2} \varepsilon}{\log_{2} | \lambda_{2} |} \nonumber
+		\end{equation}
+		where $\lambda_{2}$ is a subdominant eigenvalue of $\mP$.
+		In practice however, $ \lambda_{2}$ is difficult to compute, and other convergence tests are used \cite{Stewart_94}, such as for $M > 0$:
+		\begin{enumerate}
+			\item An absolute convergence test: $\nvec{\vxi{i} - \vxi{i{+}M}} < \varepsilon$
+			\item A relative convergence test: $\max_{\jinlN{j}{1}{N}} \left( \frac{ | \xij{i{+}M} - \xij{i} |}{ | \xij{i{+}M} |} \right) < \varepsilon$
+		\end{enumerate}
+		In general, $M$ is a function of the convergence rate and the iteration index $i$, but may be  constant.
+		Unfortunately, none of these tests gives a precise estimate.  Stewart \cite{Stewart_94} therefore suggests to envisage a \emph{battery} of convergence tests, all of which must be satisfied before the approximation is accepted as being sufficiently accurate.
+
+	\SubSection{Transient and stationary probabilities}
+		\begin{definition}
+			A Continuous-Time Markov Chain (\emph{CTMC}) is a tuple $\CTMC$ with finite set $S$ of states and generator matrix $\mQ : S \times S \rightarrow \mathbb{R}$, where $\mQ=\left(q_{i,j}\right)$, $\forall i,j \in S : i \neq j : q_{i,j} \geq 0$, and $\forall i \in S : q_{i,i} = - \sum_{j \in S, \: i \neq j} q_{i,j}$.
+		\end{definition}
+		Let us explain the intuitive meaning of $q_{i,j}$.  In a CTMC, state residence times are exponentially distributed.  More precisely, the time spent in state $i$ is governed by a negative exponential distribution with rate $|q_{i,i}|$.  The rate $|q_{i,i}|$ thus specifies the total rate to leave state $i$.  On leaving state $i$, a discrete probabilistic choice takes place among all possible successors, i.e. all states $j$ for which $q_{i,j} > 0$.  The probability to move to state $j$ is defined as $q_{i,j} / |q_{i,i}|$.  The transient probabilities of CTMC $\CTMC$, with time $t \in \mathbb{R}$, are defined by the following differential equation:
+		\begin{equation}
+			\frac{d \vpipOt}{dt} = \vpipOt \cdot \mQ \nonumber
+		\end{equation}
+		The solution of this linear differential equation system is given by:
+		\begin{equation}
+			\vpipOt = \vpO \cdot e^{\mQ{\cdot}t}
+			\label{eq:transient}
+		\end{equation}
+		Here, $\vpipOt$ denotes the state-probability after a delay of $t$ time-units given that  $\vpO$ is the initial distribution.  $\pipOti$ thus is the probability to be in state $i$ after $t$ time-units given $\vpO$.
+
+%	\paragraph{The stationary probability of a CTMC}
+		The stationary (steady-state) probabilities for a CTMC are a solution of the following system of linear equations:
+		\begin{equation}
+			\overrightarrow{p} {\cdot} \mQ = \overrightarrow{0}, \quad \text{where} \quad \sum_{i \in S} p_{i} = 1
+			\label{eq:sse_cmtc}
+		\end{equation}
+		A solution of equation (\ref{eq:sse_cmtc}) may be found by alternatively presenting it as the following unit eigenvalue problem \cite{Stewart_ACM78}:
+		\begin{equation}
+			\overrightarrow{p}{\cdot}\mP = \overrightarrow{p}
+			\nonumber
+		\end{equation}
+		where $\mP=\frac{\mQ}{\ur}+\mathcal{I}$ and $\ur \geq \max_{i \in S}| q_{i,i} |$.  It is well known \cite{Stewart_ACM78} that if
+		\begin{equation}
+			\ur > \max_{i \in S} |q_{i,i}|
+			\nonumber
+		\end{equation}
+		then all eigenvalues, except the unit eigenvalue, are strictly less than unity in modulus, which makes DTMC $\mP$ aperiodic.
+
+	\paragraph{Jensen's method.}
+		 Jensen's method, also known as uniformization, replaces $\mQ$ by $\mP$ in equation (\ref{eq:transient}).  Expanding the matrix exponent according to Taylor-McLaurin yields:
+		\begin{equation}
+			\vpipOt = \sum_{i=0}^{\infty}\giqt {\cdot} \vpOi
+			\label{eq:transient_2}
+		\end{equation}
+		where $\giqt = \pnd$ is the Poisson density function, $\vpOi = \vpO {\cdot} \mP^{i}$, and $\ur$ is the \emph{uniformization rate}.
+
+	\SubSection{On-the-fly steady-state detection \label{ss:ofssd_trans}}
+		
+		Equation (\ref{eq:transient_2}) contains $\vpO \cdot \mP^{i}$ which is the power iteration for the DTMC $\mP$, and that is where the steady-state detection comes into play.  Malhotra \emph{et. al.} \cite{MalhotraMT_MR94} present a numerical method, which takes into account steady-state detection, for computing CTMC transient probabilities (see equation (\ref{eq:transient_2})) with an overall error bound $\varepsilon$.  For the sake of this paper, we state their result in the following form:
+
+		\begin{theorem}
+			\label{th:error_fwd_initial}
+			\cite{MalhotraMT_MR94} Let $\DTMC$ be an aperiodic DTMC with initial distribution $\vpO$ and steady-state distribution $\vppO$. If for some $K$ and $\delta > 0$ it holds that $\forall i \geq K : \nvec{\vppO - \vpOi} \leq \delta$, where $\nvec{.}$ is an arbitrary vector norm \footnote{It should be noted that Theorem~\ref{th:error_fwd_initial} does not hold for an arbitrary norm $\nvec{.}$. In fact, the additional  condition $\nvec{\vp}\leq 1$ for any distribution vector $\vp$, is required.}, then for
+			{\small
+			\[
+				\vpipOt = \sum_{i=0}^{\infty}\giqt \vpOi
+			\]
+			}
+			and for inaccuracy $\varepsilon > 0$:
+			{\small
+			\begin{equation}
+				\displaystyle
+				\vpiOt = \left\{
+				\begin{array}{ll}
+					\vpOK & \text{, if } K < \ltp\\
+					\sum_{i=\ltp}^{K}\giqt \vpOi + \vpOK \left(1- \sum_{i=0}^{K}\giqt \right) & \text{, if } \ltp \leq K \leq \rtp\\
+					\sum_{i=\ltp}^{\rtp}\giqt \vpOi & \text{, if } K > \rtp\\
+				\end{array}
+				\right .
+				\label{eq:ssd_LR_initial}
+			\end{equation}
+			}
+			the following inequality holds:
+			{\small
+			\begin{fframe}{0.6}{-0.0}
+				\[
+					\nvec{\vpipOt - \vpiOt} \ \leq \ 2 \delta + \frac{\varepsilon}{2}
+				\]
+			\end{fframe}
+			}
+			Here, $\ltp$ and $\rtp$ are computed using the Fox-Glynn algorithm (see below), such that $\sum_{i=0}^{\ltp-1} \giqt \leq \frac{\varepsilon}{2}$, and $\sum_{i=\rtp+1}^{\infty} \giqt \leq \frac{\varepsilon}{2}$.
+		\end{theorem}
+		
+		Theorem~\ref{th:error_fwd_initial} can now be used to obtain a criterion for guaranteeing an overall inaccuracy of $\varepsilon > 0$ for transient analysis with on-the-fly steady-state detection.
+		
+		\begin{corollary}
+			\label{cl:error_fwd_initial}
+			Under the same conditions as Theorem~\ref{th:error_fwd_initial}:
+				\begin{fframe}{0.88}{0.0}
+					\begin{equation}
+						\nvec{\vppO - \vpOK} \leq \frac{\varepsilon}{4} \text{ implies } \nvec{\vpipOt - \vpiOt} \leq \varepsilon
+						\label{eq:malh_cr_cor}
+					\end{equation}
+				\end{fframe}
+ 		\end{corollary}
+
+		As $\nvec{\vppO - \vpOK}$ is not known during computations (since $\vppO$ is unknown, and typically not computed a priori as this is computationally too expensive), \cite{MalhotraMT_MR94} suggests to use the absolute convergence test.  This amounts to replace the premise in equation (\ref{eq:malh_cr_cor}) by:
+		{\small
+		\[
+			\nvec{\vpOi - \vpOiM} \leq \frac{\varepsilon}{4} \quad \mbox{for } M > 0
+		\]
+		}
+		Accordingly, $\vpOK$ with $K = i{+}M$ is used as an approximation of the real steady-state distribution.  This approach thus boils down to comparing probability vectors that are $M$ iterations apart.  Once these probability vectors are close enough, it is assumed that the CTMC has reached an equilibrium.  This approach, of course, has the drawback that due to the use of an approximation of the stationary probability, an equilibrium may be detected prematurely.  A detailed analysis revealed that in deriving the above result in \cite{MalhotraMT_MR94},  an important ingredient of the Fox-Glynn algorithm is not considered, viz.\ the so-called weights.  (Weights will be discussed in detail in the next section). It will be shown in the remainder of this paper that weights play an important role to strengthen the premise of (\ref{eq:malh_cr_cor}), and thus to obtain a \emph{safer} criterion to detect equilibria.
+
+\Section{Fox-Glynn error bound revisited \label{s:fox_glynn_ref}}
+	
+	Recall that  $\giqt = \pnd$ is a Poisson density function, thus $\sum_{i=0}^{\infty}\giqt = 1$.  $\giqt$ denotes the probability that $i$ events occur in a period of $t$ time units, given that the average rate of events is $q$.  The particular shape of the Poisson density function allows for ignoring the ``tails'' of the density function.  For a given error bound $\varepsilon > 0$, these so-called left and right \emph{truncation points} are given by $\ltp$ and $\rtp$ such that:
+	\[
+		\sum_{i=0}^{\ltp{-}1}\giqt \leq \frac{\varepsilon}{4} \text{, and} \sum_{i=\rtp{+}1}^{\infty}\giqt \leq \frac{\varepsilon}{4} \quad .
+	\]
+	Note that these upperbounds are twice as tight as those in Theorem \ref{th:error_fwd_initial}. So:
+	\[
+		\sum_{i=\ltp}^{\rtp}\giqt \geq 1 - \frac{\varepsilon}{2} \quad .
+	\]
+	For real-valued function $f : \mathbb{N} \to \mathbb{R}$, the Fox-Glynn algorithm \cite{FoxG_ACM88} allows to compute
+	\[
+	 	\sum_{i=0}^{\infty} \giqt f(i) \approx \frac{1}{W}\sum_{i = \ltp}^{\rtp} \wi f(i)
+	\]
+	 where $\wi = \alpha \giqt$ with $\ltp \leq i \leq \rtp$, for some constant $\alpha \neq 0$, are \emph{weights}, and $W = \sum_{i=\ltp}^{\rtp} \wi$ is a normalization weight.  Note the resemblance of the left-hand side of the last equation and equation (\ref{eq:transient_2}).  The weights $\wi$ and the normalization weight $W$ are used to prevent underflows and $\alpha$ is an unknown constant. In the following, let $\|f\| = \sup_{i \in \mathbb{N}}|f(i)|$ for real-valued function $f$.
+	
+	\begin{proposition}
+		\cite{FoxG_ACM88} For real-valued function $f$ and $\sum_{i=\ltp}^{\rtp} \giqt \geq 1 - \frac{\varepsilon}{2}$ it holds:
+		{\small
+		\[
+			\left| \sum_{i=0}^{\infty} \giqt f(i) - \frac{1}{W}\sum_{i = \ltp}^{\rtp} \wi f(i) \right| \leq \varepsilon \cdot \|f\| \quad .
+		\]
+		}
+	\end{proposition}
+
+	The following refinement can be made for the case when $f$ does not change sign, i.e., $f(i) \leq 0$ or $f(i) \geq 0$, for all $i$.
+
+	\begin{proposition}
+		For real-valued function $f$ that does not change sign and $\sum_{i=\ltp}^{\rtp} \giqt \geq 1 - \frac{\varepsilon}{2}$ it holds:
+		{\small
+		\[
+			\left| \sum_{i=0}^{\infty} \giqt f(i) - \frac{1}{W}\sum_{i = \ltp}^{\rtp} \wi f(i) \right| \leq \frac{\varepsilon}{2} \cdot \|f\| \quad .
+		\]
+		}
+		\label{pr:fg_imp}
+	\end{proposition}
+	{\small
+	\begin{proof}
+		Initially we have:
+		
+		\begin{minipage}[t]{0.45\linewidth}
+			\begin{eqnarray}
+				\sum_{i=\ltp}^{\rtp} \giqt \geq 1 - \frac{\varepsilon}{2} \label{eq:init_1} \\
+				\forall i \in \mathbb{N} : \giqt > 0 \label{eq:init_3}
+			\end{eqnarray}
+		\end{minipage} \hfill
+		\begin{minipage}[t]{0.45\linewidth}
+			\begin{eqnarray}
+				\sum_{i=0}^{\infty} \giqt = 1 \label{eq:init_2} \\
+				\|f\| = \sup_{i \in \mathbb{N}}|f(i)| \label{eq:init_4}
+			\end{eqnarray}
+		\end{minipage}
+		
+		Let $\beta = \sum_{i=\ltp}^{\rtp} \giqt$.  We obtain from (\ref{eq:init_2}):
+		\begin{equation}
+			1 - \beta = \sum_{i = 0}^{\ltp-1} \giqt + \sum_{i = \rtp+1}^{\infty} \giqt \label{eq:beta_3}
+		\end{equation}
+		
+		Using (\ref{eq:init_1}), (\ref{eq:init_2}), and (\ref{eq:init_3}) it follows $1- \frac{\varepsilon}{2} \leq \beta \leq 1$, or equivalently:
+
+		\begin{minipage}[t]{0.45\linewidth}
+			\begin{equation}
+				- \frac{\varepsilon}{2} \leq \beta -1 \leq 0  \label{eq:beta_1}
+			\end{equation}
+		\end{minipage} \hfill
+		\begin{minipage}[t]{0.45\linewidth}
+			\begin{equation}
+				0 \leq 1- \beta \leq \frac{\varepsilon}{2} \label{eq:beta_2}
+			\end{equation}
+		\end{minipage}
+
+		Notice that
+		\begin{eqnarray}
+			\sum_{i=0}^{\infty} \giqt f(i) - \frac{1}{W}\sum_{i = \ltp}^{\rtp} \wi f(i) = \nonumber \\
+			\underbrace{\sum_{i = 0}^{\ltp-1} \giqt f(i) + \sum_{i = \rtp+1}^{\infty} \giqt f(i)}_{ = A} +  
+			\underbrace{\sum_{i = \ltp}^{\rtp} \left( \giqt - \frac{\wi}{W} \right) f(i)}_{ = B} \nonumber
+		\end{eqnarray}
+		
+		Distinguish two cases:
+		\begin{equation}
+			\forall i \in \mathbb{N} : 0 \leq f(i) \leq \|f\| \text{, $f$ is non-negative} \label{eq:funct_pos}
+		\end{equation}
+		\begin{equation}
+			\forall i \in \mathbb{N} : -\|f\| \leq f(i) \leq 0 \text{, $f$ is non-positive} \label{eq:funct_neg}
+		\end{equation}
+		
+		If $f$ is non-negative, from (\ref{eq:funct_pos}), (\ref{eq:beta_3}), and (\ref{eq:beta_2}) one can easily obtain:
+		\begin{equation}
+			0 \leq A \leq \frac{\varepsilon}{2} \cdot \|f\|
+			\label{eq:fg_A_pos}
+		\end{equation}
+		
+		Similarly, from (\ref{eq:beta_1}), (\ref{eq:funct_pos}) and the definition of $\beta$ it follows that:
+		\begin{equation}
+			- \frac{\varepsilon}{2} \cdot \|f\| \leq B \leq 0
+			\label{eq:fg_B_pos}
+		\end{equation}
+		
+		This follows from the following facts:
+		\begin{eqnarray}
+			B = \sum_{i = \ltp}^{\rtp} \left( \giqt - \frac{\alpha \giqt }{\sum^{\rtp}_{j=\ltp} \alpha \gjqt} \right) f(i) = \nonumber \\
+			\sum_{i = \ltp}^{\rtp} \giqt \left( 1 - \frac{1}{\sum^{\rtp}_{j=\ltp} \gjqt} \right) f(i) = \frac{\beta - 1}{\beta} \sum_{i = \ltp}^{\rtp} \giqt  f(i)\nonumber
+		\end{eqnarray}
+		and
+		\[
+			- \frac{\varepsilon}{2} \cdot \|f\| = - \frac{\varepsilon}{2} \cdot \|f\|\cdot \frac{1}{\beta} \sum_{i = \ltp}^{\rtp} \giqt \leq \frac{\beta - 1}{\beta} \sum_{i = \ltp}^{\rtp} \giqt  f(i) \leq 0
+		\]  
+		Here it is crucial that $\beta - 1 < 0$ due to (\ref{eq:beta_1}) and $\frac{1}{\beta} \sum_{i = \ltp}^{\rtp} \giqt  f(i) \geq 0$ because of (\ref{eq:init_1}), (\ref{eq:init_3}) and  (\ref{eq:funct_pos}).
+		
+		Symmetrically, if $f$ is non-positive, from equations (\ref{eq:funct_neg}), (\ref{eq:beta_3}), and (\ref{eq:beta_2}) one can easily obtain:
+		\begin{equation}
+			- \frac{\varepsilon}{2} \cdot \|f\| \leq A \leq 0
+			\label{eq:fg_A_neg}
+		\end{equation}
+		
+		Similarly, from (\ref{eq:beta_1}), (\ref{eq:funct_neg}) and the definition of $\beta$ it follows that
+		\begin{equation}
+			0 \leq B \leq \frac{\varepsilon}{2} \cdot \|f\|
+			\label{eq:fg_B_neg}
+		\end{equation}
+		
+		Finally, summing up inequalities (\ref{eq:fg_A_pos}) and (\ref{eq:fg_B_pos}) for non-negative $f$, or (\ref{eq:fg_A_neg}) and (\ref{eq:fg_B_neg}) for non-positive $f$, we obtain:
+		\[
+			- \frac{\varepsilon}{2} \cdot \|f\| \: \leq \: \sum_{i=0}^{\infty} \giqt f(i) - \frac{1}{W}\sum_{i = \ltp}^{\rtp} \wi f(i) \: \leq \: \frac{\varepsilon}{2} \cdot \|f\|
+		\]
+	\end{proof}
+	}
+
+\Section{Time-bounded reachability \label{s:time_b_r}}
+
+		A recent popular approach to analyze properties of Markov chains is probabilistic model checking; for an overview see \cite{Kwiatkowska_SLCS03}.  Time-bounded reachability is at the heart of model-checking algorithms for CTMCs.  Let us explain this problem by means of an example. Consider a CTMC with many states among which some illegal (or: forbidden) states and some goal states.  Suppose we are interested in determining the states from which a goal state may be reached with a high probability, say at least $0.92$, within time interval $[0,14.5]$, while never visiting an illegal state before reaching its goal. We thus consider scenarios in which the system starts in some state $s \in S$, visits any number of states which are not illegal, while finally ending up in some goal state.  In the logic CSL~\cite{AzizSSB_ACMTCL00,BaierHHK_TSE03}, a continuous-time probabilistic extension of CTL,  this requirement is formulated by:
+		\[
+			\PZaUg{\geq 0.92}{0}{14.5}
+		\]
+		where $\Al$ denotes the set of legal (allowed) states and $\Gl$ denotes the set of goal states.\footnote{In logical formulas, we identify set $\Al$ (and $\Gl$) with its characteristic function.} $\mathrm{U}$ is the until-operator and takes as arguments two sets of states (usually given as logical formulae), and an interval on the real line.
+		
+		The part between parentheses characterizes a set of paths, where a single path is an alternating sequence $s_{0}t_{0}s_{1}t_{1}s_{2}t_{2}\ldots$ where $t_{j} > 0$ denotes the residence time in state $s_{j}$, and $s_{0} = s$.  Such path satisfies the requirement $\ppUp{\Al}{0}{14.5}{\Gl}$ if there exists an index $j \geq 0$ such that $s_{j} \in \Gl$, $s_i \in \Al$ for all $i < j$, and $s_{j}$ is reached within $14.5$ time units, i.e., $\sum_{i=0}^{j{-}1}t_{i} \leq 14.5$.  For the sake of brevity, we do not present the detailed semantics of this operator; these details can be found in \cite{AzizSSB_ACMTCL00,BaierHHK_TSE03}.
+	
+		Time-bounded reachability thus amounts to compute $\PsaUg{s}{0}{t}$, the probability for state $s$ satisfying formula $\ppUp{\Al}{0}{t}{\Gl}$ for a given $t \in \mathbb{R}_{\geq 0}$.  This problem can be reduced to the computation of transient probabilities in a modified CTMC \cite{BaierHHK_TSE03}.  This goes as follows.  In the original CTMC $\CTMC$, all states in $\Gl$ and all states that are neither in $\Al$ nor in $\Gl$ are made absorbing, i.e., their outgoing transitions are removed.   This operation is formally defined by:		
+		\begin{definition}
+		For CTMC $\CTMC$ and $S' \subseteq S$ let CTMC $(S, \mQ')$  be obtained by making all states in $S'$ absorbing, i.e., $\mQ' = \mQ[S']$ where $q'_{i,j} = q_{i,j}$ if $i \not\in S'$ and 0 otherwise.
+		\end{definition}
+		Note, that in order to make a state $s$ in a DTMC absorbing, all outgoing transitions of $s$ are removed and $s$ is equipped with a self-loop (with probability 1).  In a CTMC, it suffices to remove the outgoing transitions.  It now follows that:
+		{\small
+		\[
+			\PsaUg{s}{0}{t} \mbox{ in } \CTMC \ = \ \PsSUg{s}{t}{t} \mbox{ in } (S, \mQnavg)
+		\]
+		}
+		where $\Il=S \setminus \left( \Al \cup \Gl\right)$.
+		
+		For any state $s \in S$, the probability $\PsaUg{s}{0}{t}$ can be computed using Algorithm \ref{alg:fwd}, where the matrix exponent can be computed numerically using uniformization and $\vis$ is the initial distribution for the case when starting in state $s$.
+		\begin{algorithm}
+			\caption{Computing $\PsaUg{s}{0}{t}$ in a ``forward'' manner}
+			\label{alg:fwd}
+			\begin{algorithmic}[1]
+				\STATE Determine $\mQnavg$
+				\STATE Compute $\vpipst = \vis \cdot e^{\mQnavg t}$
+				\STATE Return $\PsaUg{s}{0}{t} = \sum_{j \in \Gl}\pipstj$
+			\end{algorithmic}
+		\end{algorithm}
+		\cite{KatoenKNP_LNCS01} suggests an improvement of this method (cf.\ Algorithm \ref{alg:bwd}).  Like before, the matrix exponent is computed using uniformization.  Let $\vigl$ be the characteristic vector of the set $\Gl$.
+
+		\begin{algorithm}
+			\caption{Computing $\PsaUg{s}{0}{t}$ in a ``backward'' manner}
+			\label{alg:bwd}
+			\begin{algorithmic}[1]
+				\STATE Determine $\mQnavg$
+				\STATE Compute $\vpipt = e^{\mQnavg t} \cdot \vigl$
+				\STATE Return $\forall \jinlN{s}{1}{N} : \PsaUg{s}{0}{t} = \pipts$
+			\end{algorithmic}
+		\end{algorithm}
+	
+	\SubSection{On-the-fly steady-state detection  \label{ss:ussd}}
+	
+		The steady-state detection for transient analysis of CTMCs discussed in Section \ref{ss:ofssd_trans} is applicable to the forward computations in a straightforward way.
+		Steady-state detection for backward computations has been recently discussed in \cite{YounesKNP_STTT05}.  The approach by Younes \emph{et al.} is based on the following result.
+
+		\begin{theorem}
+			\label{th:error_bwd_initial}
+			Let $\DTMC$ be an aperiodic DTMC with $\Ind \subseteq S$ such that $\forall j \in \Ind : P(j,j) = 1$, $\vpi=\mP^{i} \cdot \viind$ and steady-state vector $\vpp$. If for some $K$ and $\delta > 0$ it holds that $\forall i \geq K:\nvec{\vpp - \vpi} \leq \delta$, then for
+			{\small
+			\[
+				\vpipt = \sum_{i=0}^{\infty}\giqt \vpi
+			\]
+			}
+			and for inaccuracy $\varepsilon > 0$:
+			{\small
+			\begin{equation}
+				\displaystyle
+				\vpit = \left\{
+				\begin{array}{ll}
+					\vpK & \text{, if } K < \ltp\\
+					\sum_{i=\ltp}^{K}\giqt \vpi + \vpK \left(1- \sum_{i=\ltp}^{K}\giqt \right) & \text{, if } \ltp \leq K \leq \rtp\\
+					\sum_{i=\ltp}^{\rtp}\giqt \vpi & \text{, if } K > \rtp\\
+				\end{array}
+				\right .
+				\label{eq:ssd_LR_b}
+			\end{equation}
+			}
+			the following inequality holds:
+			{\small
+			\begin{fframe}{0.5}{-0.0}
+				\[
+					\nvec{ \vpipt - \vpit } \leq 2 \delta + \frac{\varepsilon}{2}
+				\]
+			\end{fframe}
+			}
+			Here $\ltp$, and $\rtp$ are computed using the Fox-Glynn algorithm, such that $\sum_{i=0}^{\ltp{-}1} \giqt \leq \frac{\varepsilon}{2}$ and $\sum_{i=\rtp{+}1}^{\infty} \giqt \leq \frac{\varepsilon}{2}$.
+		\end{theorem}
+		In \cite{YounesKNP_STTT05}, this result has led to the following practical check for steady-state:
+		\begin{fframe}{0.92}{-0.3}
+			\begin{equation}
+				\nvec{\vpp - \vpK} \leq \frac{\varepsilon}{8} \text{ implies } \forall j \in S : -\frac{\varepsilon}{4} \leq \piptj - \pitj \leq \frac{3}{4}\varepsilon \label{eq:youn_cr_cor}
+			\end{equation}
+		\end{fframe}
+		
+		As before, since $\vpp$ is not known during computations, the absolute convergence test is used instead. That is, the premise is replaced by  $\nvec{\vpi - \vpiM} \leq \frac{\varepsilon}{8}$.
+		The vector $\vpK$ with $K=i{+}M$ is thus used as an approximation of the steady-state vector. Whereas for the forward analysis case, the convergence test bound equals $\frac{\varepsilon}{4}$ (cf.\ equation (\ref{eq:malh_cr_cor})), for the backward analysis this is $\frac{\varepsilon}{8}$  (cf.\ equation (\ref{eq:youn_cr_cor})).  One may question how safe (and tight) this criterion for equilibrium detection is.  As these results are based on \cite{MalhotraMT_MR94}, the drawbacks of this method are inherited.  A detailed look at the equations (\ref{eq:ssd_LR_initial}) and (\ref{eq:ssd_LR_b}) for the case $\ltp \leq K \leq \rtp$ reveals that the second summation for the backward case starts at $i=\ltp$ rather than $i=0$.  The justification for this change is unclear, but has a non-negligible impact on the bound. To be more precise, this change of the summation index implicitly increases the error bound and this is not taken care of. More importantly, though,  the analysis resulting in Theorem~\ref{th:error_bwd_initial} is based on the assumption that the steady-state detection error is two-sided, whereas---due to the backward nature of the algorithm--- it is in fact \emph{one-sided}.
+
+\Section{Criteria for steady-state detection \label{s:ss_detect_improved}}
+
+	In this section, we provide new error bounds for on-the-fly steady-state detection during time-bounded reachability.  These results apply to the forward algorithm, i.e., standard transient analysis, as well as to the backward algorithm. Detailed proofs are provided to substantiate our claims.
+
+	\emph{Remark.} The error estimate in \cite{MalhotraMT_MR94} is norm based and relies on the \emph{geometrical convergence} of power iterations for an aperiodic DTMC. The geometrical convergence is usually proved, based on the \emph{total variation norm} which, in an $N$-dimensional space, is the $l^{\infty}$-norm defined as $\nvecinf{v} = \max_{\jinlN{i}{1}{N}} |v_{i}|$. As all norms in a finite-dimensional space are equivalent, the convergence result holds for any chosen norm.  The error analysis, however, is vulnerable to the kind of norm used.  For example, in the backward case, the $\vigl$ vector is not a distribution and $\forall \jinlN{j}{1}{N}: 0 \leq \pij \leq 1$, where $\vpi=\mP^{i} \cdot \vigl$. Thus, for instance, if we have $N$ states and take the Euclidean norm $\nvece{.}$, we obtain $\nvece{\sum_{i=0}^{\ltp-1} \giqt \vpi} \nleq \frac{\varepsilon}{4}$, but $\nvece{\sum_{i=0}^{\ltp-1} \giqt \vpi} \leq \frac{\sqrt{N}}{4}\varepsilon$.  The error analysis below is done for vector elements and uses the $\nvecinf{.}$ norm.
+
+	\SubSection{Transient analysis \label{ss:transient_ssd}}
+
+		Let $\ppOj$ be the $j$'th component of the precise steady-state solution $\vppO$, considering forward computations, for the initial distribution $\vpO$.  
+		Let $\pipOtj$ be the $j$'th component of $\vpipOt$, see equation (\ref{eq:transient_2}). For the case $\ltp \leq K \leq \rtp$ we consider:
+		{\small
+		\[
+			\vpiOt = \frac{1}{W} \sum_{i=\ltp}^{K}\wi \vpOi + \vpOK \left(1- \frac{1}{W} \sum_{i=\ltp}^{K}\wi \right)
+		\]
+		}
+		This equation is obtained from (\ref{eq:ssd_LR_initial}) by replacing the lower bound of the index of the second summation by $i=\ltp$, as it was done in (\ref{eq:ssd_LR_b}), and assuming the Fox-Glynn algorithm is used for computations. This is where $\wi$ and $W$ play a role.
+			
+		\begin{theorem}
+			\label{th:error_fwd}
+			Let $\DTMC$ be an aperiodic DTMC with initial distribution $\vpO$, steady-state distribution $\vppO$ and $\Ind \subseteq S$. If for some $K$ and $\delta > 0$ it holds that $\forall i \geq K : \nvecinf{\vppO - \vpOi} \leq \delta$ then for 
+			{\small
+			\[
+				\vpipOt = \sum_{i=0}^{\infty}\giqt \vpOi
+			\]
+			}
+			and for inaccuracy $\varepsilon > 0$:
+			{\small
+			\begin{equation}
+				\displaystyle
+				\vpiOt = \left\{
+				\begin{array}{ll}
+					\vpOK & \text{, if } K < \ltp\\
+					\frac{1}{W} \sum_{i=\ltp}^{K}\wi \vpOi + \vpOK \left(1- \frac{1}{W} \sum_{i=\ltp}^{K}\wi \right) & \text{, if } \ltp \leq K \leq \rtp\\
+					\frac{1}{W} \sum_{i=\ltp}^{\rtp}\wi \vpOi & \text{, if } K > \rtp\\
+				\end{array}
+				\right .
+				\nonumber
+			\end{equation}
+			}
+			the following inequality holds:
+			{\small
+			\begin{fframe}{0.75}{-0.0}
+				\[
+					\left| \sum_{j \in \Ind} \left( \pipOtj - \piOtj \right) \right| \leq 2 \delta |\Ind| + \frac{3}{4} \varepsilon
+				\]
+			\end{fframe}
+			}
+			Here $W$, $\wi$, $\ltp$, and $\rtp$ are computed using the Fox-Glynn algorithm, such that $\sum_{i=0}^{\ltp-1} \giqt \leq \frac{\varepsilon}{4}$, and $\sum_{i=\rtp+1}^{\infty} \giqt \leq \frac{\varepsilon}{4}$, and $| \Ind |$ is the cardinality of $\Ind$.
+		\end{theorem}
+		{\small
+		\begin{proof}
+			Since $\mP$ is aperiodic, the steady-state distribution $\vppO$ exists.  Due to the Fox-Glynn algorithm used with the refined error bound $\frac{\varepsilon}{2}$ (cf.\ Proposition \ref{pr:fg_imp}), we have $\wi = \alpha \giqt$, $\giqt = \pnd $, $W = \sum_{i = \ltp}^{\rtp} \wi$, $\alpha \neq 0$ is some constant, and $\ltp$, $\rtp$ such that $\beta = \sum_{i=\ltp}^{\rtp} \giqt \geq 1 - \frac{\varepsilon}{2}$.
+			Consider now the three cases as distinguished for $\vpiOt$:
+			\begin{enumerate}
+					
+				\item ($K > \rtp$):  The steady-state detection is not involved. Thus the error bound of the original Fox-Glynn method is applicable.
+					\[
+						\pipOtj - \piOtj =\sum_{i=0}^{\infty} \giqt \pOij - \sum_{i=\ltp}^{\rtp}\frac{\giqt}{\beta} \pOij
+					\]
+
+					Like in the proof of Proposition \ref{pr:fg_imp} we get:
+					\begin{eqnarray}
+						\pipOtj - \piOtj = \underbrace{\sum_{i=\ltp}^{\rtp}\frac{\beta - 1}{\beta} \giqt \pOij}_{=A_{j}} + \nonumber \\
+						\underbrace{\sum_{i=0}^{\ltp-1} \giqt \pOij + 
+						\sum_{i=\rtp+1}^{\infty} \giqt \pOij}_{=B_{j}} \nonumber
+					\end{eqnarray}
+												
+					As the vector $\vpOi$ is a distribution, we have \[ 0 \leq \sum_{j \in \Ind} \pOij \leq 1 \]
+					
+					Using the initial conditions for $\sum_{i=0}^{\ltp-1} \giqt $, $\sum_{i=\rtp+1}^{\infty} \giqt $ and $\beta$ it easily follows that:
+					
+					\[
+						- \frac{\varepsilon}{2} \leq \sum_{j \in \Ind} A_{j} \leq 0 \quad
+						\text{and} \quad
+						0 \leq \sum_{j \in \Ind} B_{j} \leq \frac{\varepsilon}{2}
+					\]
+
+					Gathering the results yields:
+					\[
+						\left| \sum_{j \in \Ind} \left( \pipOtj - \piOtj \right) \right| \leq \frac{\varepsilon}{2}
+					\]
+						
+				\item ($\ltp \leq K \leq \rtp$): In this case it follows by definition:
+					\begin{eqnarray}
+						\piOtj = \frac{1}{W} \sum_{i=\ltp}^{K}\wi \pOij + 
+						\pOKj \left(1- \frac{1}{W} \sum_{i=\ltp}^{K}\wi \right), \nonumber \\
+						\text{and } \pipOtj - \piOtj =\sum_{i=0}^{\infty} \giqt \pOij - \nonumber \\
+						\sum_{i=\ltp}^{K}\frac{\giqt}{\beta} \pOij -
+						\pOKj \left(1 - \sum_{i=\ltp}^{K}\frac{\giqt}{\beta} \right) \nonumber
+					\end{eqnarray}
+						The right-hand side of this equation can be rewritten after some standard calculations into:
+					\[
+						C_{j} + D_{j} + E_{j}
+					\]
+					where $C_{j} = \sum_{i=0}^{\ltp-1} \giqt \pOij$ , $D_{j} = \sum_{i=\ltp}^{K} \frac{\beta - 1}{\beta} \giqt \pOij $ and $E_{j} = \sum_{i=K+1}^{\infty}\giqt \pOij - \pOKj \left(1 -	\sum_{i=\ltp}^{K}\frac{\giqt}{\beta} \right)$.
+					
+					As vector $\vpOi$ is a distribution, and by assumption $\sum_{i=0}^{\ltp}\giqt \leq \frac{\varepsilon}{4}$:
+					\[
+						 0 \leq \sum_{j \in \Ind} C_{j} \leq \frac{\varepsilon}{4}
+					\]
+
+					From $1- \frac{\varepsilon}{2} \leq \beta \leq 1$ and $0 \leq \sum_{j \in \Ind} \pOij \leq 1$, it follows:
+					\begin{eqnarray}
+						0 \geq \sum_{j \in \Ind} D_{j}  = \sum_{i=\ltp}^{K} \frac{\beta - 1}{\beta} \giqt \left( \sum_{j \in \Ind} \pOij \right) \text{, and} \nonumber \\
+						\sum_{i=\ltp}^{K} \frac{\beta - 1}{\beta} \giqt \left( \sum_{j \in \Ind} \pOij \right) \geq - \frac{\varepsilon}{2 \beta} \sum_{i=\ltp}^{K} \giqt \geq - \frac{\varepsilon}{2} \nonumber
+					\end{eqnarray}
+
+					After some straightforward calculations one obtains:
+					\begin{eqnarray}
+						E_{j} = \underbrace{\sum_{i=K+1}^{\infty}\giqt \left( \pOij - \pOKj \right)}_{ = F_{j}} - \nonumber \\
+						\underbrace{\sum_{i=0}^{\ltp-1}\giqt \pOKj}_{= -G_{j}} + \underbrace{\sum_{i=\ltp}^{K}\frac{1- \beta}{\beta} \giqt \pOKj}_{ = H_{j}} \nonumber
+					\end{eqnarray}
+
+					In a similar way as for $C_{j}$ and $D_{j}$, we obtain:
+					\[
+						- \frac{\varepsilon}{4} \leq \sum_{j \in \Ind} G_{j} \leq 0
+					\]
+					\[
+						 0 \leq \sum_{j \in \Ind} H_{j} \leq \frac{\varepsilon}{2 \beta} \sum_{i=\ltp}^{K} \giqt \leq \frac{\varepsilon}{2}
+					\]
+						To obtain bounds for $F_{j}$, we first rewrite the equation for $F_{j}$ in the following way:
+					\begin{eqnarray}
+						F_{j} = \sum_{i=K+1}^{\infty}\giqt (\pOij - \ppOj) +  \sum_{i=K+1}^{\infty} \giqt (\ppOj - \pOKj) \nonumber
+					\end{eqnarray}
+							
+					From the initial condition $\forall i \geq K : \nvecinf{\vppO - \vpOi} \leq \delta$, and $\sum_{i=K+1}^{\infty}\giqt \leq 1$ it follows:  
+					\begin{eqnarray}
+						- \delta \leq \sum_{i=K+1}^{\infty} \giqt (\ppOj - \pOKj) \leq \delta \nonumber \text{, and} \nonumber \\
+						 - \delta \leq \sum_{i=K+1}^{\infty}\giqt (\pOij - \ppOj) \leq \delta \nonumber
+					\end{eqnarray}
+					Thus:
+					\[
+						- 2 \delta \leq F_{j} \leq 2 \delta
+					\]
+					From this, it directly follows that:
+					\[
+						- 2 \delta |\Ind| \leq \sum_{j \in \Ind} F_{j} \leq 2 \delta | \Ind |
+					\]
+
+					By gathering all results, we obtain:
+					 \[
+						\left| \sum_{j \in \Ind} \left( \pipOtj - \piOtj \right) \right| \leq 2 \delta | \Ind | + \frac{3}{4} \varepsilon
+					\]
+					
+				\item ($K < \ltp$): For this case, we have:
+					\[
+						\piOtj = \pOKj \sum_{i=0}^{\infty} \giqt \text{, and}
+					\]
+					\[
+						\pipOtj - \piOtj = \sum_{i=0}^{\infty} \giqt \left( \pOij - \pOKj \right)
+					\]
+						
+						Splitting the right-hand side of this equation yields:
+					\[
+						\underbrace{\sum_{i=0}^{K} \giqt \left( \pOij - \pOKj \right)}_{=I_{j}} + \underbrace{\sum_{i=K+1}^{\infty} \giqt \left( \pOij - \pOKj \right)}_{=F_{j}}
+					\]
+
+					Due to $K < \ltp$, it follows that:
+					\begin{eqnarray}
+						0 \leq \sum_{j \in \Ind} \sum_{i=0}^{K} \giqt \pOij \leq \sum_{i=0}^{K} \giqt \leq \frac{\varepsilon}{4} \nonumber \text{, and similarly}\\
+						0 \leq \sum_{j \in \Ind} \sum_{i=0}^{K} \giqt \pOKj \leq \sum_{i=0}^{K} \giqt \leq \frac{\varepsilon}{4} \nonumber
+					\end{eqnarray}
+					Thus we have:
+					\[
+						-\frac{\varepsilon}{4} \leq \sum_{j \in \Ind} I_{j} \leq \frac{\varepsilon}{4}
+					\]
+					For $F_{j}$ we already have (cf. case 2):
+					\[
+						- 2 \delta |\Ind| \leq \sum_{j \in \Ind} F_{j} \leq 2 \delta |\Ind|
+					\]
+					Gathering the results yields:
+					\[
+						\left| \sum_{j \in \Ind} \left( \pipOtj - \piOtj \right) \right| \leq 2 \delta |\Ind| + \frac{\varepsilon}{4}
+					\]
+			\end{enumerate}
+			Summarizing the results of the three proof cases, we obtain the following. For arbitrary $ 0 \leq K < \infty$, due to $\max\{ \frac{\varepsilon}{2}, 2 \delta | \Ind | + \frac{3}{4} \varepsilon, 2 \delta |\Ind| + \frac{\varepsilon}{4} \} = 2 \delta | \Ind | + \frac{3}{4}\varepsilon$:
+			\[
+				\left| \sum_{j \in \Ind} \left( \pipOtj - \piOtj \right) \right| \leq 2 \delta | \Ind | + \frac{3}{4} \varepsilon
+			\]
+		\end{proof}
+		}
+		
+		\begin{corollary}
+			Under the same conditions as Theorem~\ref{th:error_fwd}:
+			\begin{fframe}{0.98}{-0.2}
+				\begin{equation}
+					\nvecinf{\vppO - \vpOK} \leq \frac{\varepsilon}{8 |\Ind|} \text{ implies } \left| \sum_{j \in \Ind} \left( \pipOtj - \piOtj \right) \right| \leq \varepsilon \label{eq:our_fwd_cor}
+				\end{equation}
+			\end{fframe}
+			\label{cl:error_fwd}
+		\end{corollary}
+		{\small
+			\begin{proof}
+				See Appendix \ref{app:ss_detect_improved}.
+			\end{proof}
+		}
+		
+		Let us now return to the calculation of time-bounded reachability probabilities. For computing the probability $\PsaUg{s}{0}{t}$ in state $s$, we have $\Ind = \Gl$ and $\vpO = \vis$.  According to the above results, the safe stopping criterion to obtain an overall inaccuracy of $\varepsilon$ equals  $\nvecinf{\vpps - \vpsK} \leq \frac{\varepsilon}{8 | \Gl |}$. We point out the main differences between our result and the results referred to in Section \ref{ss:ofssd_trans}.
+		First of all, Theorem~\ref{th:error_fwd} takes into account the weights $\wi$ (and the normalization factor $W$) for determining $\vpiOt$.  Hence, different summation bounds for the case $\ltp \leq K \leq \rtp$ (as $\wi = 0$ for all $i < \ltp$) occur in the definition of $\vpiOt$.  Secondly, due to the refined bound for Fox-Glynn (cf.\ Proposition \ref{pr:fg_imp}), the bounds on the left and right truncation errors on which Theorem~\ref{th:error_fwd} is based are two times tighter than ($\frac{1}{4}$ instead of $\frac{1}{2}$) the corresponding truncations errors that form the basis for Theorem~\ref{th:error_fwd_initial}.  Theorem~\ref{th:error_fwd} refers to the $l^{\infty}$-norm, whereas the norm in Theorem~\ref{th:error_fwd_initial} is left implicit.
+
+		The resulting steady-state detection criterion
+			\[
+				\nvecinf{\vppO - \vpOK} \leq \frac{\varepsilon}{8}
+			\]
+		for the case $|\Ind| = 1$ (the error for a single vector element $\piOtj$), is tighter than the bound provided in \cite{MalhotraMT_MR94} (see equation (\ref{eq:malh_cr_cor})):
+			\[
+				\nvec{\vppO - \vpOK} \leq \frac{\varepsilon}{4}
+			\]
+		The fact that the resulting bound is similar to that in Section \ref{ss:ussd} for backward computations is due to the fact that the weights introduce an additional error. In the next section, it will be shown that for backward computations---even taking into account the error introduced by weights---the steady-state detection criterion is weaker than in \cite{YounesKNP_TACAS04,YounesKNP_STTT05}.
+
+	\SubSection{Backward computations \label{ss:error_backward}}
+		
+		Let $\piptj$ be the $j$'th component of $\vpipt$, and $\ppj$ be the $j$'th component of $\vpp$.  Notice, that, unlike the case for forward computations, $\forall \jinlN{j}{1}{N} : \ppj - \pij \geq 0$ for all $i \geq K$, because $\forall \jinlN{j}{1}{N}, \forall i\geq0 : \pij \leq \pilj \leq \vpp$.
+		
+		\begin{theorem}
+			Let $\DTMC$ be an aperiodic DTMC with $\Ind \subseteq S$ such that $\forall j \in \Ind : P(j,j) = 1$, $\vpi=\mP^{i} \cdot \viind$ and steady-state vector $\vpp$. If for some $K$ and $\delta > 0$ it holds that $\forall i \geq K : \forall \jinlN{j}{1}{N} : 0 \leq \ppj - \pij \leq \delta$, then for 
+			{\small
+			\[
+				\vpipt = \sum_{i=0}^{\infty}\giqt \vpi
+			\]
+			}
+			and for inaccuracy $\varepsilon > 0$:
+			{\small
+			\begin{equation}
+				\displaystyle
+				\vpit = \left\{
+				\begin{array}{ll}
+					\vpK & \text{, if } K < \ltp\\
+					\frac{1}{W} \sum_{i=\ltp}^{K}\wi \vpi + \vpK \left(1- \frac{1}{W} \sum_{i=\ltp}^{K}\wi \right) & \text{, if } \ltp \leq K \leq \rtp\\
+					\frac{1}{W} \sum_{i=\ltp}^{\rtp}\wi \vpi & \text{, if } K > \rtp\\
+				\end{array}
+				\right .
+				\nonumber
+			\end{equation}
+			}
+			the following inequality holds:
+			{\small
+			\begin{fframe}{0.5}{-0.0}
+				\[
+					\nvecinf{ \vpipt - \vpit } \leq \delta + \frac{3}{4} \varepsilon
+				\]
+			\end{fframe}
+			}
+			Here $W$, $\wi$, $\ltp$, and $\rtp$ are computed using the Fox-Glynn algorithm, such that $\sum_{i=0}^{\ltp-1} \giqt \leq \frac{\varepsilon}{4}$, and $\sum_{i=\rtp+1}^{\infty} \giqt \leq \frac{\varepsilon}{4}$.
+			\label{th:error_bwd}
+		\end{theorem}
+		{\small
+			\begin{proof}
+				Tedious, but along the same lines as the proof of Theorem~\ref{th:error_fwd}.\\ See Appendix \ref{app:ss_detect_improved}.
+			\end{proof}
+		}
+
+		\begin{corollary}
+			Under the same conditions as Theorem~\ref{th:error_bwd}:
+			\begin{fframe}{0.8}{-0.2}
+				\begin{equation}
+					\nvecinf{\vpp - \vpK} \leq \frac{\varepsilon}{4} \text{ implies } \nvecinf{\vpipt - \vpit}\leq \varepsilon
+					\label{eq:our_bwd_cor}
+				\end{equation}
+			\end{fframe}
+			\label{cl:error_bwd}
+		 \end{corollary}
+		{\small
+			\begin{proof}
+				See Appendix \ref{app:ss_detect_improved}.
+			\end{proof}
+		}
+		
+		When computing the probability $\PsaUg{s}{0}{t}$ we have $\Ind = \Gl$ and $\viind = \vigl$. Recall that the main difference with the forward algorithm is that we now employ a global model-checking procedure, i.e., probabilities $\PsaUg{s}{0}{t}$ are determined for \emph{all} states $s$. To guarantee an overall error bound of $\varepsilon$, one should use $\nvecinf{\vpp - \vpK} \leq \frac{\varepsilon}{4}$ as a stopping criterion.  Although our result at first sight looks quite similar to that in \cite{YounesKNP_STTT05}, there are various small, though important differences.  As for the forward case, the influence of weights (that may yield an additional error) is taken into account.  Secondly, the change of the summation lower bound from $i=0$ to $i=\ltp$ in equation (\ref{eq:ssd_LR_b}) is implicitly taken care of due to the fact that $\forall i < \ltp : \wi = 0$. If weights are neglected, as in Theorem~\ref{th:error_bwd_initial}, an error bound is obtained that is too liberal. Finally, we remark that the steady-state detection error is one-sided for backward computations.
+
+	\SubSection{Summary of results}
+
+		{\small
+		\begin{table}
+			\caption{A summary of results}
+			%\vspace{-0.2cm}
+			\label{tbl:summ}
+			\begin{center}
+				\begin{tabular}{|c|c|}
+					\hline
+					\multicolumn{2}{|c|}{Forward computations} \\
+					\hline
+					\multicolumn{2}{|l|}{\emph{Malhotra \emph{et. al}'s result \cite{MalhotraMT_MR94}:}}\\
+					\multicolumn{2}{|c|}{$\nvec{\vppO - \vpOK} \leq \frac{\varepsilon}{4} \text{ implies } \nvec{\vpipOt - \vpiOt} \leq \varepsilon \: (\ref{eq:malh_cr_cor})$} \\
+					\multicolumn{2}{|l|}{\emph{Our result:}}\\
+					\multicolumn{2}{|c|}{$\nvecinf{\vppO - \vpOK} \leq \frac{\varepsilon}{8 |\Ind|} \text{ implies } \left| \sum_{j \in \Ind} \left( \pipOtj - \piOtj \right) \right| \leq \varepsilon \: (\ref{eq:our_fwd_cor})$}\\
+					\hline
+					\multicolumn{2}{|c|}{Backward computations} \\
+					\hline
+					\multicolumn{2}{|l|}{\emph{Younes \emph{et. al}'s result \cite{YounesKNP_STTT05}:}}\\
+					\multicolumn{2}{|c|}{$\nvec{\vpp - \vpK} \leq \frac{\varepsilon}{8} \text{ implies } \forall j \in S : -\frac{\varepsilon}{4} \leq \piptj - \pitj \leq \frac{3}{4}\varepsilon \: (\ref{eq:youn_cr_cor})$}\\
+					\multicolumn{2}{|l|}{\emph{Our result:}}\\
+					\multicolumn{2}{|c|}{$\nvecinf{\vpp - \vpK} \leq \frac{\varepsilon}{4} \text{ implies } \nvecinf{\vpipt - \vpit}\leq \varepsilon \: (\ref{eq:our_bwd_cor})$}\\
+					\hline
+				\end{tabular}
+			\end{center}
+			\vspace{-0.2cm}
+		\end{table}
+		}
+		To summarize we provide the Table \ref{tbl:summ}. Please take into account that our results require the use of weights for the computations of $\vppO$ and $\vpp$ as well as different left and right truncation points for the computation of Poisson probabilities (cf. Proposition \ref{pr:fg_imp}).
+
+\Section{Safely detecting stationarity \label{s:osf}}
+	
+	Although the (theoretical) results obtained so far in this paper provide safe criteria for detecting whether an equilibrium has been reached, they suffer from the problem that the stopping criterion refers to the steady-state vector $\vpp$ that is typically unknown.  A possible way to circumvent this is to use the absolute convergence test (see Section \ref{ss:ofssd_trans} and \ref{ss:ussd}).  This boils down to comparing probability vectors that are $M > 0$ iterations apart.  This, however, introduces an unknown error.  To avoid this unpredictable error, we suggest to exploit the typical structure of the CTMC for time-bounded reachability.  Recall that for checking the formula $\ppUp{\Al}{0}{t}{\Gl}$, all states in $\Gl$ and in $\Il = S \setminus \left( \Al \cup \Gl \right)$ are made absorbing \cite{BaierHHK_TSE03}.  Intuitively speaking, on the long run, the probability mass will flow to the states in $\Gl$ and in $\Il$, or to bottom strongly connected components (BSCCs)---SCCs that once entered cannot be left anymore---in the remainder of the CTMC, i.e., in the set of states $S \setminus (\Gl \cup \Il)$.  It can be shown (see below), that we can safely replace each of these BSCCs by a single absorbing state without affecting the validity of the time-bounded reachability problem.  Checking for an equilibrium now amounts to check whether the residual probability mass in the remaining non-absorbing states is below a certain threshold.
+	Let $\Bag = \left\{ s \in B \cap \left( \Al \setminus \Gl \right) | B \text{ is a BSCC in } \mQnavg \right\}$.
+	
+	\begin{proposition}
+		For any state $s$ in CTMC $\CTMC$, time-bounded property $\ppUp{\Al}{0}{t}{\Gl}$ and $\mQB = \mQ \left[ \Il \cup \Gl \cup \Bag \right]$ we have:
+		{\small
+			\[
+				\PsaUg{s}{0}{t}\text{ in }\CTMC \ = \ \PsSUg{s}{t}{t}\text{ in }(S,\mQB)
+			\]
+		}
+		\label{pr:absorbing}
+	\end{proposition}
+	{\small
+		\begin{proof}
+			See Appendix \ref{app:osf}.
+		\end{proof}
+	}
+	Every state $s \in \AlMBagGl = S \setminus (\Il \cup \Gl \cup \Bag)$ is a transient state. This follows directly from the construction of $\mQB$. 
+	
+	\paragraph{Forward computations.}
+	As the probability mass in transient states of $\mQB$ on the long run equals 0, this can now be exploited. Due to the uniformization procedure the same is valid for the stochastic matrix $\mB$ obtained after uniformizing CTMC $(S,\:\mQB)$. When $i$ increases, while computing $\vis \cdot \mB^{i}$, the probability to be in a transient state is only decreasing, and the probability to be in an absorbing state is increasing.
+	
+	\begin{theorem}
+		For the stochastic matrix $\mB$ obtained after uniformizing CTMC $(S,\:\mQB)$, for any $K$ and $\delta > 0$ the following holds:
+			{\small
+			\[
+				\sum_{j \in \AlMBagGl} \psKj \leq \delta \Rightarrow \forall i \geq K : \nvecinf{\vpps - \vpsi} \leq \delta
+			 \]
+			 }
+		Where $\psij$ is the $j$'th component of $\vpsi = \vis \cdot \mB^{i} $, and $\vpps$ is the steady-state probability for $\mB$ when starting from state $s$. \label{th:criteria_1}
+	 \end{theorem}
+	{\small
+		\begin{proof}
+			See Appendix \ref{app:osf}.
+		\end{proof}
+	}
+	
+	Notice that this theorem gives a precise error bound for a steady-state detection. In particular, the premise does not refer to the steady-state prob. vector $\vpps$. Still the convergence rate is not known so the check for steady-state should be performed every $M$ iterations as before.
+	
+	\paragraph{Backward computations.}
+	The backward algorithm is based on $\vpi = \mP^{i} \cdot \vigl$, where vector $\vigl$ is not a distribution. The idea of backward computations is to accumulate the probability to reach states in $\Gl$. Information about the probability reaching $\AlMBagGl$ or $\Bag \cup \Il$ is, however, not available. To compute the precise equilibrium, we propose to compute, in addition to $\vpi$, the probability to be in either $\Bag$ or $\Il$ after $i$ steps.
+	
+	\begin{theorem}
+		\label{th:criteria_2}
+		For the stochastic matrix $\mB$ obtained after uniformizing CTMC $(S,\:\mQB)$, for any $K$ and $\delta > 0$ the following holds:
+			{\small
+			\[
+				\nvecinf{ \overrightarrow{1} - \left( \vpK + \vbpK \right) } \leq \delta \Rightarrow \forall i \geq K : \nvecinf{\vpp - \vpi} \leq \delta
+			 \]
+			 }
+		where $\vpi = \mB^{i} \cdot \vigl$, $\vbpi = \mB^{i} \cdot \vibadag$, and $\vpp = \lim_{i \rightarrow \infty} \mB^{i} \cdot \vigl$.
+	\end{theorem}
+	{\small
+		\begin{proof}
+			See Appendix \ref{app:osf}.
+		\end{proof}
+	}
+	A few remarks are in order. The premise in Theorem \ref{th:criteria_2} does not refer to the (typically) unknown steady-state prob. vector $\vpp$. Moreover, the premise can be checked easily provided the two prob. vectors $\vpK$ and $\vbpK$ are known. Note that two probability vectors are required to be able to detect steady state. This is similar as for using the test $\nvec{\vpi - \vpiM}$. However, premature stationarity does never occur.
+
+\Section{Experimental results \label{s:examples}}
+
+	This section reports on some experiments that we conducted with existing and the proposed approaches towards on-the-fly steady-state detection. The experiments concentrate on illustrating the phenomenon of premature stationarity in existing model checkers for CTMCs and to show the effect of the technique proposed in Section \ref{s:osf}.  This is first shown by means of a simple, though artificial example.  The fact that these phenomena occur in realistic examples too is illustrated by means of the workstation cluster \cite{HaverkortHK_SRDS00,BuchholzKKT_JLAP03,YounesKNP_TACAS04,KwiatkowskaNP_IMTTCPE02,Prism_WC05}, an example that has established itself as one of the benchmarks for probabilistic model checking, and by the IEEE 802.11 group communication protocol \cite{MassinkKL_DSN04}. We finally report on the computation time needed for our proposed algorithm.  The tools that are used in the experiments are \prism ~\cite{KwiatkowskaNP_QEST04}, \etmcc ~\cite{HermansKMS_IJSTTT03} and our model checker called \mrmc ~\cite{KatoenKZ_QEST05}.  The first two support an on-the-fly steady-state detection as described in Section \ref{ss:ussd}, whereas MRMC realizes (as an option) the algorithms proposed in Section \ref{s:osf} of this paper.  GreatSPN v1.0 \cite{DAprileDS_DS04} uses ETMCC as a back-end and the results reported on ETMCC therefore also apply to GreatSPN.
+
+	All experiments consider the backward algorithm.  For comparison reasons, probabilities obtained from Matlab or \ultrasan~\cite{SandersOQW_PECS95} are used. For all presented examples, curves obtained with Matlab (\ultrasan) and MRMC, with the steady-state detection turned on, coincide.
+
+	It should be noted that each tool uses different $M$ for steady-state detection, when employing relative and absolute convergence tests. For example, PRISM uses $M=1$, which allows to save on memory usage as only a single prob. vector suffices, while ETMCC uses $M=10$. As a result, PRISM detects a steady-state earlier than ETMCC.
+	
+	\paragraph{A slowly convergent CTMC. \label{ss:slow_conv}}
+		Consider the CTMC in Fig. \ref{gr:sc_mc} and let $\Al = \{0,1\}$ and $\Gl = \{2\}$.  The peculiarity of this CTMC is that the probability to move from the starting state $1$ to the goal state is very low.  Fig. \ref{gr:prob_1} plots the probability $\PsaUg{1}{0}{t}$ for the tools considered for different $t$.  The experiments for PRISM are performed using either a relative (rel) or an absolute (abs) convergence test. As we want to make these two convergence tests behave similarly, the relative error is set to $10^{-1}$. This approximately corresponds to an absolute error of $10^{-6}$. Note that ETMCC and both variants of PRISM (abs and rel) detect stationarity prematurely whereas MRMC does not. For the indicated range of $t$, the resulting error is within the inaccuracy $\varepsilon = 10^{{-}6}$; for larger values of $t$ (upto around 16,000), the resulting probabilities for ETMCC and PRISM differ more than $\varepsilon$ (and MRMC still does not detect an equilibrium).  More details on the iteration index at which an equilibrium is detected ($K$), and the corresponding probability are given in Table \ref{tb:ssd_points}.
+		%Note that $\vpp = \lim_{K \to \infty} \mP^{K} \cdot \vipsi$ is not a distribution but a vector of probabilities, since the backward computations are used. For this example $\vpp = (1.0, 1.0, 1.0)^{T}$.
+		
+		To validate the tweak of the relative error bound for PRISM, it should be noted that with the original error bound $10^{-6}$, the premature steady-state detection still occurs but for larger values of the time bound $t$, such as $t \geq 1,050,000$.
+		
+	\begin{table}[h]
+	{\footnotesize
+		\caption{Steady-state detected on iteration $K$}
+		%\vspace{-0.4cm}
+		\begin{center}
+			\begin{tabular}{|l|c|c|c|}
+				\hline
+				Tool 		& Error &	$K$	& $\mP^{K} \cdot \vipsi$ \\
+				\hline
+				\prism (abs)	& $10^{-6}$ &	 2	&	($5.00025 \cdot 10^{-5}$, $2.5 \cdot 10^{-9}$, 1.0) \\
+				\prism (rel)	& $10^{-1}$ &	12	&	($5.00275 \cdot 10^{-5}$, $2.75 \cdot 10^{-8}$, 1.0) \\
+				\etmcc		& $10^{-6}$ &	20	&	($5.00475 \cdot 10^{-5}$, $4.75 \cdot 10^{-8}$, 1.0) \\
+				\mrmc		& $10^{-6}$ & ---	&	---	 \\
+				\hline
+			\end{tabular}
+		\end{center}
+		\label{tb:ssd_points}
+		\vspace{-0.3cm}
+	}
+	\end{table}
+	
+	\paragraph{Workstation cluster. \label{ss:work_clust}}
+		As a larger and more realistic example, we considered the workstation cluster as originally proposed in \cite{HaverkortHK_SRDS00}. This example is used as a benchmark in various papers, e.g., \cite{BuchholzKKT_JLAP03,YounesKNP_TACAS04,KwiatkowskaNP_IMTTCPE02,Prism_WC05}.$\:$ The cluster consists of two symmetric subsystems both consisting of $L$ workstations.  Inside a subsystem, the workstations are connected by means of switches that are connected by a backbone. Each component of the system (workstation, switch and backbone) is failure prone.  Depending on the number of operational and connected workstations, the system is said to offer maximum or minimum quality-of-service.  The time-bounded reachability property considered is the probability to eventually reach a service level below the minimum.  The investigated configuration is $L{=}5$, and the minimum QoS equals 3.  The resulting CTMC has about 5,000 states.  The rates of the model are taken from the PRISM web page \cite{Prism_WC05}. Fig. \ref{gr:prob_5} plots the computed probabilities using PRISM and ETMCC using the absolute error $10^{{-}6}$ and relative error $10^{{-}3}$. Here $\Al$ contains all states whereas $\Gl$ represents the set of states for which the minimum QoS does not hold. The effect of the steady-state detection is similar as for the artificial example shown before.
+		Note that with the default relative error $10^{{-}6}$, PRISM prematurely detects steady state for $t \geq 28,000$.
+
+	\begin{figure}[h]
+		\begin{center}
+			\begin{minipage}[c]{.42\linewidth}
+				\vspace{0.9cm}
+				\begin{center}
+					{\small
+						\begin{picture}(50,41)(0,0)
+							\def\x1{5}\def\y1{21}
+							\node(n1)(\x1,\y1){$0$}
+							\def\x2{25}\def\y2{21}
+							%\node(n2)(\x2,\y2){\textcolor{Gray}{$1$}}
+							\node[fillgray=0.85](n2)(\x2,\y2){$1$}
+							\def\x3{45}\def\y3{21}
+							\node(n3)(\x3,\y3){$2$}
+						
+							\gasset{ExtNL=y, NLdist=1, ilength=-2}
+							\nodelabel[NLangle=270](n1){}
+							\nodelabel[NLangle=270](n2){}
+							\nodelabel[NLangle=270](n3){}
+					
+							\drawedge[curvedepth=8](n2,n1){0.9999}
+							\drawedge[curvedepth=8](n1,n2){0.00005}
+							\drawedge(n2,n3){0.00005}
+						\end{picture}
+					}
+					\vspace{0.3cm}
+					\caption{{\small A slowly convergent CTMC }}
+					\label{gr:sc_mc}
+				\end{center}
+			\end{minipage}
+			\hfill
+			\begin{minipage}[c]{.57\linewidth}
+				\begin{center}
+					\includegraphics[scale=0.6, angle=0]{../../../../experiments/26_08_2005/CSL/ssd_02/results.eps}
+					\caption{{\small $\PsaUg{1}{0}{t}$ for various $t$ }}
+					\label{gr:prob_1}
+				\end{center}
+			\end{minipage}
+			\vspace{-0.6cm}
+		\end{center}
+	\end{figure}
+
+	\begin{figure}[h]
+		\begin{center}
+			\begin{minipage}[t]{.49\linewidth}
+				\begin{center}
+					\includegraphics[scale=0.55, angle=0]{../../../../experiments/24_10_2005/CSL/ssd_03/results.eps}
+					\vspace{-0.4cm}
+					\caption{{\small $\PsaUg{4167}{0}{t}$ for various $t$ \label{gr:prob_5}}}
+				\end{center}
+			\end{minipage}
+			\hfill
+			\begin{minipage}[t]{.49\linewidth}
+				\begin{center}
+					\includegraphics[scale=0.55, angle=0]{../../../../experiments/30_08_2005/CSL/ssd_03/csl_bounded_until_10/results_time.eps}
+					\vspace{-0.4cm}
+					\caption{{\small Runtime vs. $t$ for time-bounded reachability (with and without steady-state detection) \label{gr:prob_4}}}
+				\end{center}
+			\end{minipage}
+		\end{center}
+	\end{figure}
+
+	\paragraph{Wireless group communication protocol.}
+		As a final example, we consider the verification of a variant of the centralized medium access protocol of the IEEE 802.11 standard for wireless local area networks.  This protocol has been the subject of various evaluation studies, see e.g. \cite{BondavalliCG_KAPCDC02,MockNS_EDCC00}.  For this case study, Massink \emph{et. al.}~\cite{MassinkKL_DSN04} recently reported the premature detection of steady state during probabilistic model checking.  In our experiments, we confirm their results and show that our new algorithm does not suffer from these problems.
+
+		The group communication protocol is centralized in the sense that the medium access is controlled by a fixed node in the network, the Access Point (AP).  The AP polls the wireless stations, and on receipt of a poll message, stations may broadcast a message.  Stations acknowledge the receipt of a message such that the AP is able to detect whether or not all stations have correctly received the broadcast message.  In case of a detected loss, a retransmission by the originator takes place.  It is assumed that the number of consecutive losses of the same message is bounded by a fixed constant {\it OD}, the so-called omission degree.   This all refers to the transmission of time-critical messages; other messages are sent in another phase of the protocol.  The AP controls these phases which are of a fixed duration.  The property of interest is (as in \cite{BondavalliCG_KAPCDC02,MassinkKL_DSN04}) to determine whether the probability that a message originated by the AP is not received by at least one station within the duration of the time-critical phase, i.e., $t=2.4$ seconds.   Note that this time span is considered as extremely large, given that all protocol operations just last a few milliseconds on average.   We consider the verification of this property for the initial state of the protocol model for different values of {\it OD}.    Thus, $\Al$ contains all states of the protocol model, whereas $\Gl$ contains all failed states, i.e., all states in which more than {\it OD} losses have taken place.
+
+		\begin{figure}[h]
+			\begin{center}
+				\includegraphics[scale=0.55, angle=0]{../../../../experiments/04_07_2006/CSL/WGC/results.eps}
+				\caption{{\small $\PsaUg{1}{0}{t}$ for various values of OD \label{gr:prob_6}}}
+			\end{center}
+		\end{figure}
+
+		To study the influence of the steady-state detection algorithm, we use the UltraSAN model of \cite{MassinkKL_DSN04} for reference purposes.  We vary the omission degree {\it OD} from $0$ through $8$ for four number of stations in the group.  The corresponding CTMC has a state space ranging from $5$ to about $9,500$ states.   The parameters used in this case study are adopted from \cite{MassinkKL_DSN04} and correspond to {\it PE} = $0.00016$, the steady-state probability to lose a message and {\it FDT} = $0.003$, the normalized Doppler frequency caused by the relative motion of receiving and transmitting stations.   Fig.~\ref{gr:prob_6} plots the time-bounded probability (log-scale) versus the omission degree {\it OD}.  The results of our algorithm coincide with those of UltraSAN; these results thus coincide with \cite{MassinkKL_DSN04}.  PRISM prematurely detects an equilibrium for all values of {\it OD}.  ETMCC suffers from the same phenomenon for higher omission degrees.
+	
+	\paragraph{Runtime.}
+		To conclude, we report on the impact of the proposed on-the-fly steady-state detection algorithm on the verification time for backward computations.  The typical pattern obtained is depicted in Fig. \ref{gr:prob_4} (These results are obtained on a \emph{Pentium 4 3.00GHz, 2Gb RAM, Suse Linux} machine). Prior to the point at which a steady state is detected during the computation of time-bounded reachability, the run time is doubled.  This is due to the fact that for the backward algorithm, $\vbpi$ is computed in addition to $\vpi$.  Once the equilibrium is reached (and detected), the run time for the variant with steady-state detection remains constant, whereas the run time of the algorithm without continues to grow linearly in $t$.
+		Roughly speaking, if a steady-state is detected at time $t'$, then safe on-the-fly steady-state detection is beneficial (in the sense of reducing verification time) for time spans $t \geq 2 \cdot t'$.
+
+\Section{Concluding remarks \label{s:concl}}
+	This paper presented refined error bounds for existing standard transient analysis and for time-bounded reachability algorithms that incorporate on-the-fly steady-state detection.  These results are obtained using a refined bound for the Fox-Glynn algorithm. The results are complemented by a simple technique to \emph{safely} detect a steady-state for standard transient analysis and time-bounded reachability.  Experiments showed that the new algorithm improves on existing techniques in prob. model checking.  Our backward algorithm increases runtime (factor two), and requires two extra vectors. For the forward algorithm there is no increase of run time, and no additional space is required. In both cases it is guaranteed to avoid detecting premature equilibria.
+	
+	{\small \paragraph{Acknowledgment}
+	The authors thank \emph{David N. Jansen} for his careful and detailed comments and for pointing out a flaw in a previous version of \cite{KatoenZ_QEST06}. \emph{Dave Parker} is thanked for discussions about steady-state detection in PRISM. We thank \emph{Mieke Massink} for providing us all input files that allowed us to conduct the experiments for the group communication protocol.
+
+	This research has been performed as part of the MC=MC project that is financed by the Netherlands Organization for Scientific Research (NWO), and the VOSS2 project, a bilateral project between the NWO and DFG (German Research Foundation).}
+
+{\footnotesize
+	\bibliography{../../../BibTex/global_etmcc}
+}
+
+	\appendix
+	\appendixpage
+
+	\Section{ Proofs from Section~\ref{s:ss_detect_improved} \label{app:ss_detect_improved}}
+
+		\begin{corollary}[Corollary \ref{cl:error_fwd}]
+			Under the same conditions as Theorem~\ref{th:error_fwd}:
+			\begin{fframe}{0.9}{-0.2}
+				\begin{equation}
+					\nvecinf{\vppO - \vpOK} \leq \frac{\varepsilon}{8 |\Ind|} \text{ implies } \left| \sum_{j \in \Ind} \left( \pipOtj - \piOtj \right) \right| \leq \varepsilon \nonumber
+				\end{equation}
+			\end{fframe}
+		\end{corollary}
+		{\small
+			\begin{proof}
+				According to Theorem \ref{th:error_fwd}:
+				\begin{equation}
+					\left| \sum_{j \in \Ind} \left( \pipOtj - \piOtj \right) \right| \leq 2 \delta |\Ind| + \frac{3}{4} \varepsilon \nonumber
+				\end{equation}
+				In case $\nvecinf{\vppO - \vpOK} \leq \delta = \frac{\varepsilon}{8 |\Ind|}$, we have:
+				\begin{equation}
+					\left| \sum_{j \in \Ind} \left( \pipOtj - \piOtj \right) \right| \leq \frac{2 \varepsilon |\Ind|}{8 |\Ind|}  + \frac{3}{4} \varepsilon = \varepsilon \nonumber
+				\end{equation}
+			\end{proof}
+		}
+
+		\begin{theorem}[Theorem \ref{th:error_bwd}]
+			Let $\DTMC$ be an aperiodic DTMC with $\Ind \subseteq S$ such that $\forall j \in \Ind : P(j,j) = 1$, $\vpi=\mP^{i} \cdot \viind$ and steady-state vector $\vpp$. If for some $K$ and $\delta > 0$ it holds that $\forall i \geq K : \forall \jinlN{j}{1}{N} : 0 \leq \ppj - \pij \leq \delta$, then for 
+			{\small
+			\[
+				\vpipt = \sum_{i=0}^{\infty}\giqt \vpi
+			\]
+			}
+			and for inaccuracy $\varepsilon > 0$:
+			{\small
+			\begin{equation}
+				\displaystyle
+				\vpit = \left\{
+				\begin{array}{ll}
+					\vpK & \text{, if } K < \ltp\\
+					\frac{1}{W} \sum_{i=\ltp}^{K}\wi \vpi + \vpK \left(1- \frac{1}{W} \sum_{i=\ltp}^{K}\wi \right) & \text{, if } \ltp \leq K \leq \rtp\\
+					\frac{1}{W} \sum_{i=\ltp}^{\rtp}\wi \vpi & \text{, if } K > \rtp\\
+				\end{array}
+				\right .
+				\nonumber
+			\end{equation}
+			}
+			the following inequality holds:
+			{\small
+			\begin{fframe}{0.5}{-0.0}
+				\[
+					\nvecinf{ \vpipt - \vpit } \leq \delta + \frac{3}{4} \varepsilon
+				\]
+			\end{fframe}
+			}
+			Here $W$, $\wi$, $\ltp$, and $\rtp$ are computed using the Fox-Glynn algorithm, such that $\sum_{i=0}^{\ltp-1} \giqt \leq \frac{\varepsilon}{4}$, and $\sum_{i=\rtp+1}^{\infty} \giqt \leq \frac{\varepsilon}{4}$.
+		\end{theorem}
+		{\small
+			\begin{proof}
+				Since $\mP$ is aperiodic, the steady-state vector $\vpp$ exists. 
+				Due to the Fox-Glynn algorithm used with the refined desired error bound $\frac{\varepsilon}{2}$ (cf. Proposition \ref{pr:fg_imp}), we have $\wi = \alpha \giqt$, $\giqt = \pnd $, $W = \sum_{i = \ltp}^{\rtp} \wi$, $\alpha \neq 0$ is some constant, and $\ltp$, $\rtp$ such that $\beta = \sum_{i=\ltp}^{\rtp} \giqt \geq 1 - \frac{\varepsilon}{2}$.\\
+				Consider now the three cases as distinguished for $\vpit$:
+				\begin{enumerate}
+	
+					\item ($K > \rtp$): The steady-state detection is not involved. Thus the error bound of the original Fox-Glynn method is applicable.
+						\begin{equation}
+							\piptj - \pitj =\sum_{i=0}^{\infty} \giqt \pij - \sum_{i=\ltp}^{\rtp}\frac{\giqt}{\beta} \pij \nonumber
+						\end{equation}
+	
+						Like in the proof of Proposition \ref{pr:fg_imp} we get:
+						\begin{equation}
+							\piptj - \pitj = \underbrace{\sum_{i=0}^{\ltp-1} \giqt \pij + \sum_{i=\rtp+1}^{\infty} \giqt \pij}_{=A_j} + \underbrace{\sum_{i=\ltp}^{\rtp}\frac{\beta - 1}{\beta} \giqt \pij}_{=B_j} \nonumber
+						\end{equation}
+						
+						The vector $\vpi$ is such that $0 \leq \pij \leq 1$. Using the initial conditions for $\sum_{i=0}^{\ltp-1} \giqt $, $\sum_{i=\rtp+1}^{\infty} \giqt $ and $\beta$ it easily follows that:
+						
+						$$
+							0 \leq A_{j} \leq \frac{\varepsilon}{2} \quad 
+							\text{and} \quad
+							- \frac{\varepsilon}{2} \leq B_{j} \leq 0
+						$$
+	
+						Gathering the results yields:
+						\begin{equation}
+							\left| \piptj - \pitj \right| \leq \frac{\varepsilon}{2}
+						\end{equation}
+	
+					\item ($\ltp \leq K \leq \rtp$): In this case it follows by definition:
+						\begin{equation}
+							\pitj = \frac{1}{W} \sum_{i=\ltp}^{K}\wi \pij + \pKj \left(1- \frac{1}{W} \sum_{i=\ltp}^{K}\wi \right) \nonumber \text{, and}
+						\end{equation}
+						\begin{equation}
+							\piptj - \pitj = \sum_{i=0}^{\infty} \giqt \pij - \sum_{i=\ltp}^{K}\frac{\giqt}{\beta} \pij - \pKj \left(1 - \sum_{i=\ltp}^{K}\frac{\giqt}{\beta} \right) \nonumber
+						\end{equation}
+							The right-hand side of this equation can be rewritten after some standard calculations into:
+						\begin{equation}
+							C_{j} + D_{j} + E_{j} \nonumber
+						\end{equation}
+	
+						where $C_{j} = \sum_{i=0}^{\ltp-1} \giqt \pij$ , $D_{j} = \sum_{i=\ltp}^{K} \frac{\beta - 1}{\beta} \giqt \pij $ and $E_{j} = \sum_{i=K+1}^{\infty}\giqt \pij - \pKj \left(1 - \sum_{i=\ltp}^{K}\frac{\giqt}{\beta} \right)$.
+						
+						From the fact that $0 \leq \pij \leq 1$, and by assumption $\sum_{i=0}^{\ltp-1} \giqt \leq \frac{\varepsilon}{4}$:
+						\begin{equation}
+							0 \leq C_{j} \leq \frac{\varepsilon}{4} \nonumber
+						\end{equation}
+						
+						From $1- \frac{\varepsilon}{2} \leq \beta \leq 1$ and $0 \leq \pij \leq 1$, it follows:
+						\begin{equation}
+							- \frac{\varepsilon}{2} \leq - \frac{\varepsilon}{2 \beta} \sum_{i=\ltp}^{K} \giqt \leq \sum_{i=\ltp}^{K} \frac{\beta - 1}{\beta} \giqt = D_{j} \leq 0 \nonumber
+						\end{equation}
+						
+						After some straightforward computations one obtains:
+						\begin{equation}
+							E_{j} = \underbrace{\sum_{i=K+1}^{\infty}\giqt \left( \pij - \pKj \right)}_{=F_{j}} - \underbrace{\sum_{i=0}^{\ltp-1}\giqt \pKj}_{=-G_{j}} + \underbrace{\sum_{i=\ltp}^{K}\frac{1- \beta}{\beta} \giqt \pKj}_{H_{j}} \label{eq:c_init}
+						\end{equation}
+	
+						In a similar way as for $C_{j}$ and $D_{j}$, we obtain:
+						\begin{equation}
+							- \frac{\varepsilon}{4} \leq G_{j} \leq 0 \nonumber
+						\end{equation}
+						\begin{equation}
+							0 \leq H_{j} \leq \frac{\varepsilon}{2 \beta} \sum_{i=\ltp}^{K} \giqt \leq \frac{\varepsilon}{2} \nonumber
+						\end{equation}
+							To obtain bounds for $F_{j}$, we first rewrite the equation for $F_{j}$ in the following way: 
+						\begin{equation}
+								F_{j} = \sum_{i=K+1}^{\infty}\giqt (\pij - \ppj) + \sum_{i=K+1}^{\infty} \giqt (\ppj - \pKj) \nonumber
+						\end{equation}
+	
+						From the initial condition $\forall i \geq K : \forall \jinlN{j}{1}{N} : 0 \leq \ppj - \pij \leq \delta$, and $0 \leq \pij \leq 1$ it follows:
+						\begin{equation}
+								0 \leq \sum_{i=K+1}^{\infty} \giqt (\ppj - \pKj) \leq \delta \nonumber
+						\end{equation}
+	
+						and because of the fact that probabilities $\pij$ are not decreasing, due to the initial condition $\forall j \in \Ind : P(j,j) = 1$:
+						\begin{equation}
+							- \delta \leq \sum_{i=K+1}^{\infty}\giqt (\pij - \ppj) \leq 0 \nonumber
+						\end{equation}
+	
+						Thus:
+						\begin{equation}
+								- \delta \leq F_{j} \leq \delta \nonumber
+						\end{equation}
+						
+						By gathering all results, we obtain:
+						\begin{equation}
+								\left| \piptj - \pitj \right| \leq \delta + \frac{3}{4} \varepsilon \nonumber
+						\end{equation}
+	
+					\item ($K < \ltp$): For this case, we have:
+						\begin{equation}
+							\pitj = \pKj \sum_{i=0}^{\infty} \giqt \text{, and } \nonumber
+						\end{equation}
+						\begin{equation}
+							\piptj - \pitj = \sum_{i=0}^{\infty} \giqt \left( \pij - \pKj \right) \nonumber
+						\end{equation}
+		
+						Splitting the right-hand side of this equation yields:
+						\begin{equation}
+							\underbrace{\sum_{i=0}^{K} \giqt \left( \pij - \pKj \right)}_{ = I_{j}} + \underbrace{\sum_{i=K+1}^{\infty} \giqt \left( \pij - \pKj \right)}_{ = F_{j}} \nonumber
+						\end{equation}
+	
+						Due to $K < \ltp$, it follows that:
+						\begin{equation}
+							0 \leq \sum_{i=0}^{K} \giqt \pij \leq \frac{\varepsilon}{4} \text{, and } 0 \leq \sum_{i=0}^{K} \giqt \pKj \leq \frac{\varepsilon}{4} \nonumber
+						\end{equation}
+						
+						Thus we have
+						\begin{equation}
+							- \frac{\varepsilon}{4} \leq I_{j} \leq \frac{\varepsilon}{4} \nonumber
+						\end{equation}
+						
+						For $F_{j}$ we already have (cf. case 2):
+						\begin{equation}
+							- \delta \leq F_{j} \leq \delta \nonumber
+						\end{equation}
+						
+						Gathering the results yields:
+						\begin{equation}	
+								\left| \piptj - \pitj \right| \leq \delta + \frac{\varepsilon}{4} \nonumber
+						\end{equation}
+				\end{enumerate}
+				Summarizing the results of the three proof cases, we obtain the following.
+				For arbitrary $ 0 \leq K < \infty$ and any $\jinlN {j}{1}{N}$, due to $\max\{ \frac{\varepsilon}{2}, \delta + \frac{3}{4} \varepsilon, \delta + \frac{\varepsilon}{4} \} = \delta + \frac{3}{4} \varepsilon$:
+				\begin{equation}
+					\left| \piptj - \pitj \right| \leq \delta + \frac{3}{4} \varepsilon \nonumber
+				\end{equation}
+				Thus:
+				\begin{equation}
+					\nvecinf{ \vpipt - \vpit } \leq \delta + \frac{3}{4} \varepsilon \nonumber
+				\end{equation}
+			\end{proof}
+		}
+
+		\begin{corollary}[Corollary \ref{cl:error_bwd}]
+			Under the same conditions as Theorem~\ref{th:error_bwd}:
+			\begin{fframe}{0.7}{-0.2}
+				\begin{equation}
+					\nvecinf{\vpp - \vpK} \leq \frac{\varepsilon}{4} \text{ implies } \nvecinf{\vpipt - \vpit}\leq \varepsilon \nonumber
+				\end{equation}
+			\end{fframe}
+		 \end{corollary}
+		{\small
+			\begin{proof}
+				According to Theorem \ref{th:error_bwd} 
+				\begin{equation}
+					\left| \piptj - \pitj \right| \leq \delta + \frac{3}{4} \varepsilon \nonumber
+				\end{equation}
+				In case $\nvecinf{\vpp - \vpK} \leq \delta = \frac{\varepsilon}{4}$, we have for any $\jinlN{j}{1}{N}$:
+				\begin{equation}
+					\left| \piptj - \pitj \right| \leq \frac{\varepsilon}{4}  + \frac{3}{4} \varepsilon = \varepsilon \nonumber
+				\end{equation}
+				Thus:
+				\begin{equation}
+					\nvecinf{\vpipt - \vpit} \leq \varepsilon \nonumber
+				\end{equation}
+			\end{proof}
+		}
+
+	\Section{ Proofs from Section~\ref{s:osf} \label{app:osf}}
+
+		\begin{proposition}[Proposition \ref{pr:absorbing}]
+		For any state $s$ in CTMC $\CTMC$, time-bounded property $\ppUp{\Al}{0}{t}{\Gl}$ and $\mQB = \mQnavg \left[ \Bag \right]$ we have:
+			\begin{center}
+				$\PsaUg{s}{0}{t}$ in $\CTMC \ = \ \PsSUg{s}{t}{t}$ in $(S,\mQB)$
+			\end{center}
+		\end{proposition}
+		{\small
+			\begin{proof}
+				In \cite{BaierHHK_TSE03} the following is proved:
+					\[
+						\PsaUg{s}{0}{t}\text{ in }\CTMC \ = \ \PsSUg{s}{t}{t}\text{ in }(S,\mQnavg)
+					\]
+				It is also clear that
+					\[
+						\PsSUg{s}{t}{t}\text{ in }(S,\mQnavg) \ = \ \PsSUg{s}{t}{t}\text{ in }(S,\mQB)
+					\]
+				The latter is due to the fact, that for a BSCC $B$ in $\mQnavg$:
+					\[
+						\text{ if } \exists s_{1} \in B : s_{1} \in \Al \setminus \Gl \text{ then } \forall s_{2} \in B : s_{2} \in \Al \setminus \Gl
+					\]
+				and thus from any state $s_{1} \in \Bag$ it is impossible to reach $\Gl$.
+			\end{proof}
+		}
+
+		\begin{theorem}[Theorem \ref{th:criteria_1}]
+			For the stochastic matrix $\mB$ obtained after uniformizing CTMC $(S,\:\mQB)$, for any $K$ and $\delta > 0$ the following holds:
+				\[
+					\sum_{j \in \AlMBagGl} \psKj \leq \delta \Rightarrow \forall i \geq K : \nvecinf{\vpps - \vpsi} \leq \delta
+				\]
+			Where $\psij$ is the $j$'th component of $\vpsi = \vis \cdot \mB^{i} $, and $\vpps$ is the steady-state probability for $\mB$ when starting from state $s$.
+		\end{theorem}
+		{\small
+			\begin{proof}
+				In \cite{KatoenKNP_LNCS01} it was noticed that in $\mQnavg$ all $\Gl$ states can be collapsed into one state, without affecting $\PsSUg{s}{t}{t}$. The same can be done with the $\Il$ states. In $\mQB$ the $\Bag$ states are also made absorbing, as this does not affect $\vpsi$. Thus, as a trivial extension, we suggest to collapse all $\Bag \cup \Il$ states of $\mQB$ into a single absorbing state.
+				This yields a matrix, denoted $\mQB$, with two absorbing states, one that corresponds to $\Gl$ states - say state $N$, and one that corresponds to $\Bag \cup \Il$ states - say state $N-1$. Here $N$ denotes the number of states that result after the described procedure. The remaining states $N-2$ are transient states from the set $\AlMBagGl = \{ 1,\cdots,N-2 \}$.
+				
+				The rest of this proof is divided into three steps:
+				\begin{enumerate}
+					\item First, let us prove that for any $K$ and $\delta > 0$:
+						\begin{equation}
+							\sum_{\jinlN{j}{1}{N-2}} \psKj \leq \delta \Rightarrow \nvecinf{\vpps - \vpsK} \leq \delta
+							\label{eq:trans_step_1}
+						\end{equation}
+						By definition of the $l^{\infty}$-norm:
+						\begin{equation}
+							\nvecinf{\vpps - \vpsK} = \max_{\jinlN{j}{1}{N}} | \ppsj - \psKj | \label{eq:trans_1}
+						\end{equation}
+						Since states $1,\cdots,N-2$ are transient $\forall \jinlN{j}{1}{N-2} : \ppsj =0 $, and thus (\ref{eq:trans_1}) equals:
+						\begin{equation}
+							\max \left\{ \max_{\jinlN{j}{1}{N-2}} \psKj, \max_{j \in \{N-1,N \} } | \ppsj - \psKj | \right\} \label{eq:trans_2}
+						\end{equation}
+						Using $\sum_{\jinlN{j}{1}{N-2}} \psKj \leq \delta$ we get that (\ref{eq:trans_2}) is bounded from above by:
+						\begin{equation}
+							\max \left\{ \delta, \max_{ j \in \{N-1,N \} } | \ppsj - \psKj | \right\} \label{eq:trans_3}
+						\end{equation}
+						Vectors $\vpsK$ and $\vpps$ are distributions:
+						\begin{eqnarray}
+							\sum_{j=1}^{N-2} \psKj + \psKNI + \psKN = 1 \label{eq:trans_4} \\
+							\ppsNl + \ppsN = 1 \label{eq:trans_5}
+						\end{eqnarray}
+						From (\ref{eq:trans_4}) and (\ref{eq:trans_5}) it follows:
+						\[
+							\ppsNl - \psKNI + \ppsN - \psKN = \sum_{j=1}^{N-2} \psKj
+						\]
+						As the probability mass is flowing into the $\Gl$, $\Il$ and $\Bag$ states, we have:
+						\begin{equation}
+							0 \leq \ppsNl - \psKNI \text{ and } 0 \leq \ppsN - \psKN \nonumber
+						\end{equation}
+						and thus:
+						\[
+							|\ppsNl - \psKNI| + |\ppsN - \psKN| = \sum_{j=1}^{N-2} \psKj
+						\]
+						From the latter and the initial condition $\sum_{j=1}^{N-2} \psKj \leq \delta$ we get:
+						\[
+							|\ppsNl - \psKNI| + |\ppsN - \psKN| \leq \delta
+						\]
+						which induces:
+						\[
+							| \ppsNl- \psKNI | \leq \delta \text{ and } | \ppsN - \psKN | \leq \delta
+						\]
+						Finally, it follows that (\ref{eq:trans_3}) is limited from above by:
+						\[
+							max \{ \delta, \delta, \delta \} = \delta
+						\]
+						which yields (\ref{eq:trans_step_1}).
+				
+					\item The next step is to prove that for any $K$:
+						\begin{equation}
+							\forall Z > 0 : \sum_{\jinlN{j}{1}{N-2}} \psKj \geq \sum_{\jinlN{j}{1}{N-2}} \psKZj
+							\label{eq:trans_step_2}
+						\end{equation}
+						The latter clearly follows from the fact that for any $K$:
+						\begin{equation}
+							\sum_{\jinlN{j}{1}{N-2}} \psKj \geq \sum_{\jinlN{j}{1}{N-2}} \psKIj \label{eq:trans_6}
+						\end{equation}
+						Equation (\ref{eq:trans_6}) follows from the fact that states $N-1$ and $N$ are absorbing states in $\mB=\left( p^{B}_{i,j} \right)$, in other words:
+						\begin{eqnarray}
+							\psKINI = \underbrace{\sum_{\jinlN{j}{1}{N-2}} \psKj \cdot p^{B}_{j,N-1}}_{\geq 0} + \psKNI \label{eq:trans_7} \\
+							\psKIN = \underbrace{\sum_{\jinlN{j}{1}{N-2}} \psKj \cdot p^{B}_{j,N}}_{\geq 0} + \psKN \label{eq:trans_8}
+						\end{eqnarray}
+						Vectors $\vpsK$ and $\vpsKI$ are distributions, thus:
+						\begin{eqnarray}
+							\sum_{\jinlN{j}{1}{N-2}} \psKj - \sum_{\jinlN{j}{1}{N-2}} \psKIj = \nonumber \\
+							\left(1{-}\psKNI{-}\psKN \right){-}\left(1{-}\psKINI{-}\psKIN \right) \label{eq:trans_9}
+						\end{eqnarray}
+						From (\ref{eq:trans_7}), (\ref{eq:trans_8}) and (\ref{eq:trans_9}) we obtain:
+						\begin{eqnarray}
+							\sum_{\jinlN{j}{1}{N-2}} \psKj - \sum_{\jinlN{j}{1}{N-2}} \psKIj = \nonumber \\ \underbrace{\psKINI - \psKNI}_{\geq 0} + \underbrace{ \psKIN -  \psKN}_{\geq 0} \geq 0 \nonumber
+						\end{eqnarray}
+						which yields (\ref{eq:trans_6}).
+					
+					\item The last step is to notice that, due to (\ref{eq:trans_step_2}), for any $K$ and $\delta > 0$:
+						\[
+							\sum_{\jinlN{j}{1}{N-2}} \psKj \leq \delta \Rightarrow \forall i \geq K : \sum_{\jinlN{j}{1}{N-2}} \psij \leq \delta
+						\]
+						and from (\ref{eq:trans_step_1}) for any $i$:
+						\[
+							\sum_{\jinlN{j}{1}{N-2}} \psij \leq \delta \Rightarrow \nvecinf{\vpps - \vpsi} \leq \delta
+						\]
+						This proves the claim. 
+				\end{enumerate}
+			\end{proof}
+		}
+	
+		\begin{theorem}[Theorem \ref{th:criteria_2}]
+			For the stochastic matrix $\mB$ obtained after uniformizing CTMC $(S,\:\mQB)$, for any $K$ and $\delta > 0$ the following holds:
+				\begin{equation}
+					\nvecinf{ \overrightarrow{1} - \left( \vpK + \vbpK \right) } \leq \delta \Rightarrow \forall i \geq K : \nvecinf{\vpp - \vpi} \leq \delta
+					\label{eq:criteria_back}
+				\end{equation}
+			where $\vpi = \mB^{i} \cdot \vigl$, $\vbpi = \mB^{i} \cdot \vibadag$, and $\vpp = \lim_{i \rightarrow \infty} \mB^{i} \cdot \vigl$.
+		\end{theorem}
+		{\small
+			\begin{proof}
+				Consider the $j$'th component of vectors in (\ref{eq:criteria_back}), then follow the proof of Theorem \ref{th:criteria_1}, taking into account that:
+				\begin{equation}
+					1 - \left( \pij + \bpij \right) = \sum_{k \in \AlMBagGl} \pjik \nonumber
+				\end{equation}
+			\end{proof}
+		}
+\end{document}

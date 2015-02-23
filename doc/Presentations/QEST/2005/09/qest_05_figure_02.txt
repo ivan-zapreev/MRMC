@@ -1,0 +1,22 @@
+46:)ewi410:/> ../../../bin/mrmc csrl csrl_unif_state_impulse_01.tra csrl_unif_state_impulse_01.lab csrl_unif_state_impulse_01.rew csrl_unif_state_impulse_01.rewi
+Running in the CSRL model checking mode.
+States=5, Transitions=11
+Space Occupied:: 1424 Bytes.
+Type 'help' to get help.
+>>P{>0.1}[ Sup U[0,50][0,3000] failed ]
+State = 0, Probabilty = 5.087386e-03, Error Bound = 5.325909e-10 
+State = 1, Probabilty = 1.230380e-02, Error Bound = 4.466197e-10 
+State = 2, Probabilty = 1.000000e-00, Error Bound = 4.147793e-12 
+State = 3, Probabilty = 1.000000e-00, Error Bound = 4.147793e-12 
+State = 4, Probabilty = 1.000000e-00, Error Bound = 4.147793e-12 
+Result: ( 5.087386125019004e-03, 1.230379607517677e-02, 9.999999999958522e-01, 9.999999999958522e-01, 9.999999999958522e-01 )
+time to compute: 953 micro sec(s)
+states = {3, 4, 5, }
+>>quit
+*****************************************************************
+*                The Markov Reward Model Checker                *
+*                       MRMC v1.0 (alpha)                       *
+*This product was developed by: Maneesh Khattri and Ivan Zapreev*
+*             The University of Twente 2004-2005                *
+*****************************************************************
+47:)ewi410:functional_tests/csrl_unif_state_impulse_01/> 

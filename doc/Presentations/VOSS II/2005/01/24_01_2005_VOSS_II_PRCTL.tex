@@ -1,0 +1,81 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+
+\begin{document}
+
+\title{About PRCTL}
+\author{Maneesh Khattri \& Ivan Zapreev}
+\date{}
+\maketitle{}
+
+\section{Slide 1}
+
+\begin{eqnarray*}
+\Phi &::=& \mathtt{tt}\ |\ a\ \in\ AP|\ \lnot \Phi\ |\ \Phi \vee \Phi\ |\ \mathcal{L}_{\trianglelefteq p}(\Phi)\ |\ \mathcal{P}_{\trianglelefteq p}(\Phi \mathcal{U}_{J}^{N}\Psi)\ |\ \mathcal{E}^{n}_{J}(\Phi)\ |\ \mathcal{E}_{J}(\Phi)\ 
+|\ \mathcal{C}^{n}_{J}(\Phi)\ |\ \mathcal{Y}^{n}_{J}(\Phi)
+\end{eqnarray*}
+\subsection{on slide}
+\begin{itemize}
+\item $\mathcal{L}_{\trianglelefteq p}(\Phi)$: Long-run probability meets probability bound
+\item $\mathcal{P}_{\trianglelefteq p}(\Phi \mathcal{U}_{J}^{N}\Psi)$: Path-probability operator for until formula
+\item $\mathcal{E}^{n}_{J}(\Phi)$: Expected reward rate at n-th transition for phi-states meets reward bound
+\item $\mathcal{E}_{J}(\Phi)$: Long-run expected reward rate for phi-states meets reward bound
+\item $\mathcal{C}^{n}_{J}(\Phi)$: Instantaneous reward rate in phi-states meets the reward bound
+\item $\mathcal{Y}^{n}_{J}(\Phi)$: expected accumulated reward until the n-th transtion meets the reward bound
+\end{itemize}
+
+\subsection{how to compute}
+Let $\underline{\rho}$ be a vector of rewards, one for each state, $\pi(s,s^{\prime})$ the long-run probability of being in state $s^{\prime}$ after starting in state $s$, $\pi(s,s^{\prime}, n)$ be the probability of being in state $s^{\prime}$ after starting in state $s$ in $n \geq 0$ steps.
+\begin{enumerate}
+\item $\mathcal{L}_{\trianglelefteq p}(\Phi)$: BSCC + linear equations.
+\item $\mathcal{P}_{\trianglelefteq p}(\Phi \mathcal{U}_{J}^{N}\Psi)$: compute a path-graph consisting of tuples (r,p) indexed by state s. A combination (s,r,p) in the path-graph indicates the probability p, of being in state s, with reward r in a certain iteration. These iterations are computed until the upper-time-bound is reached.
+\item $s \vDash \mathcal{E}^{n}_{J}(\Phi)$ iff $\sum\limits_{s^{\prime} \in Sat(\Phi)} \pi^{*}(s, s^{\prime}, n)\cdot\underline{\rho}(s^{\prime})\in J$ \\
+where $s \vDash \pi^{*}(s, s^{\prime}, n) = \dfrac{1}{n+1}\sum\limits_{i=0}^{n}\pi(s, s^{\prime}, i)$
+\item $s \vDash \mathcal{E}_{J}(\Phi)$ iff $\sum\limits_{s^{\prime} \in Sat(\Phi)} \pi(s, s^{\prime})\cdot\underline{\rho}(s^{\prime})\in J$
+\item $s \vDash \mathcal{C}^{n}_{J}(\Phi)$ iff $\sum\limits_{s^{\prime} \in Sat(\Phi)} \pi(s, s^{\prime}, n)\cdot \underline{\rho}(s^{\prime}) \in J$
+\item $s \vDash \mathcal{Y}^{n}_{J}(\Phi)$ iff $\underline{E}(s,n)\in J$
+\begin{equation*}
+E(s,\ n)=\left\{
+\begin{array}{ll}
+0 & \text{if }n=0 \\ \\
+\underline{\rho}(s)+\sum\limits_{s^{\prime}\in S} \boldsymbol{P}(s,s^{\prime})\cdot E(s^{\prime},n-1) & \text{if } s\in Sat(\Phi) \wedge n>0 \\ \\
+\sum\limits_{s^{\prime}\in S} \boldsymbol{P}(s,s^{\prime})\cdot E(s^{\prime},n-1) & \text{if } s\notin Sat(\Phi) \wedge n>0
+\end{array}
+\right.
+\end{equation*}
+
+Now, write this in M-v form. Let $\underline{\rho}^{\prime}(s)=\underline{\rho}(s)$ if $s\vDash \Phi$ else $\underline{\rho}^{\prime}(s)=0$. Then,
+\begin{center}\fbox{$\underline{E}(n)=\underline{\rho}^{\prime}+\boldsymbol{P}\cdot\underline{E}(n-1)$}\end{center}
+
+\end{enumerate}
+
+\section{Slide 2}
+\subsection{on slide}
+\begin{itemize}
+	\item all formulas in PRCTL have been implemented as detailed earlier
+	\item slight modification was made to the the path-generation algorithm used for until formulas
+	\item figure (!!!) Better access to the rate matrix. Maybe this should be ``less time for inserting into the structure".
+\end{itemize}
+
+\subsection{some explanation: for the figure}
+\begin{enumerate}
+	\item Insertion into path-graph:
+	\begin{itemize}
+	\item Old structure: for each new tuple, a search over all the rewards is performed, which requires $\mathcal{O}(R)$ time if the rewards are not sorted, where $R$ is the number of distinct rewards in a given iteration. Subsequently, the required state can be found in $\mathcal{O}(1)$ time if values for all states are stored, even with $p=0$, else it requires $\mathcal{O}(|S|)$ time. Hence, one new insertion takes $\mathcal{O}(R+|S|)$ time.
+	\item New structure: Since a pointer/NULL is stored for each state hence the search for the right state takes $\mathcal{O}(1)$ time. For searching for the given reward $\mathcal{O}(R)$ time is required if the rewards are not sorted, if R is the number of distinct rewards. Hence, one new insertion takes $\mathcal{O}(R)$ time.
+	\end{itemize}
+	\item Generation of new tuples:
+	\begin{itemize}
+	\item Old structure: For each tuple $(s,p)$ in the path-graph, there are $\mathcal{O}(|S|\cdot R)$, each successor state has to be found and new tuples be computed. This requires $\mathcal{O}(|S|)$ time and there can be $\mathcal{O}(|S|^2\cdot R)$ new tuples generated. Each insertion into the new path-graph takes $\mathcal{O}(R^{\prime}+|S|)$ time, where $R^{\prime}$ is the new number of distinct rewards. Hence in total, the generation of a new path-graph takes $\mathcal{O}(|S|^2\cdot R\cdot (R^{\prime}+|S|))$ time.
+	\item New structure: For each state, each of the successor states has to be accessed in $\mathcal{O}(|S|)$ time. For each transition then each of the rewards in the path-graph for the source state need to be accessed. In total, $\mathcal{O}(|S|^2\cdot R)$ time is required to generate $\mathcal{O}(|S|^2\cdot R)$ tuples. One insertion in the new path-graph takes $\mathcal{O}(R^{\prime}$) time, where $R^{\prime}$ is the new number of distinct rewards.  Hence in total, the generation of a new path-graph takes $\mathcal{O}(|S|^2\cdot R\cdot R^{\prime})$ time.
+	\end{itemize}
+	\item Storage space required:
+	\begin{itemize}
+	\item Old structure: Since all combinations of $S$ \& $R$ are possible hence the storage space required to store the tuples is $\mathcal{O}(2 \cdot |S|\cdot R + R)$, where $R$ is the number of distinct rewards in a given iteration. Note that the additional $R$ corresponds to the main index where the distinct reward has to be stored.
+	\item New structure: As in the old structure the storage space required to store the tuples is $\mathcal{O}(2\cdot |S|\cdot R + |S|)$. Note that the additional term is now $|S|$ and not $R$. This is potentially advantageous because $|S|$ is bounded.
+	\end{itemize} 
+\end{enumerate}
+From this analysis it can be seen that the improvement obtained by using the new structure is not very significant except for slight improvement in the insertion of new elements and in the storage space required.
+\end{document}

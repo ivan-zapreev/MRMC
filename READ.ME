@@ -1,0 +1,422 @@
+******************************************************************
+                              README
+******************************************************************
+
+This is Markov Reward Model Checker (MRMC), version 1.2.2.
+
+In this document you will find information about building, running and testing MRMC.
+
+For more information on MRMC please visit:
+    http://www.cs.utwente.nl/~zapreevis/mrmc/
+
+-----------------------------------------------------------------
+                             Contents
+-----------------------------------------------------------------
+ 0. What is new?
+ 1. General information about the distribution
+ 2. Building MRMC
+ 3. Running MRMC
+ 4. Running test suites
+ 5. Getting MRMC models
+ 6. Licensing
+ 7. Contacts
+ 8. The old release notes
+
+-----------------------------------------------------------------
+                         0. What is new?
+-----------------------------------------------------------------
+
+Current release: 1.3
+
+                              ---Algorithms---
+
+    * A simulation engine for the PCTL/CSL logic has been added.
+    *
+
+                              ---Usability---
+
+    * The formula tree with all the intermediate results of model checking is added to the parser.
+      It is especially useful for the third-party developers that would like to integrate their
+      algorithms into MRMC and also for those who would like to use MRMC as a backend.
+    * Several important bugs have been fixed, see the buglist.txt in the root of MRMC distribution tree.
+    * The "help" and "print" command outputs were optimized.
+    * New interface commands have been added, such as "print tree" that allows to print the model checking
+      results for the formula and all its subformulas.
+
+                        ---Source code improvements---
+
+    * The model checking part became more encapsulated. When parsing the model-checking property
+      First the internal formula tree is constructed that is then model checked in the bottom-up manner.
+    * The intermediate model checking results are not discarded any more and are available in the
+      nodes of the formula tree.
+    * The header files were organized with respect to the directory structure of the source files.
+
+                                ---Testing---
+
+    * The golden files of the functional tests have been updated
+    * New functional tests have been added.
+    *
+
+-----------------------------------------------------------------
+         1. General information about the distribution
+-----------------------------------------------------------------
+NOTE: To use MRMC, you first have to build it from sources,
+see Section "2. Building MRMC".
+
+GENERAL NOTES:
+1. Run the program "MRMC/bin/mrmc" without parameters to get info on which
+inputs are acceptable.
+2. The tool is a command line utility with its own command prompt. Type "help"
+while running it to get help information.
+3. If you have any questions on the input file formats, feel free to contact
+us at <mrmc@cs.utwente.nl>.
+
+NOTE: Examples of input files and properties of CTL, CSL, PRCTL, CSRL logics
+can be found in the test suite "MRMC/test/functional_tests", also see
+MRMC/doc/Documentation.txt for details.
+
+FILE STRUCTURE:
+    -MRMC/bin/mrmc     -- the MRMC binary (present after compilation)
+    -MRMC/lib/mrmc.a   -- the static library that is the MRMC core
+    -MRMC/doc          -- the tool documentation
+    -MRMC/include      -- the header files
+    -MRMC/src          -- the core sources
+      -MRMC/src/storage        -- the internal data structures
+      -MRMC/src/lumping        -- the lumping algorithms
+      -MRMC/src/algorithms     -- the numerical algorithms
+      -MRMC/src/modelchecking  -- the model checking algorithms
+      -MRMC/src/io             -- the input-processing sources
+          -MRMC/src/io/parser  -- the parser and lexical analyzer
+    -MRMC/test         -- internal, functional and performance
+                          tests for MRMC (For details see section 3.
+                          Running test suites of this document)
+    -MRMC/buglist.txt  -- the list of known bugs
+    -MRMC/LICENSE.txt  -- licensing information
+    -MRMC/READ.ME      -- the file you are reading now
+    -MRMC/makefile     -- the main makefile
+    -MRMC/makefile.def -- the main makefile definitions
+
+-----------------------------------------------------------------
+                         2. Building MRMC
+-----------------------------------------------------------------
+
+MRMC_HOME_DIRECTORY_NAME - is the absolute name of the MRMC-distribution folder.
+
+If you work on Windows machine and would like to build MRMC from sources then
+proceed to the point I. below, otherwise go to point II.
+
+I. To build MRMC on Windows do the following:
+   A) Download Cygwin from: http://cygwin.com/
+   B) Install Cygwin, make sure that 'gcc', 'make', 'yacc' ('bison') and 'lex' ('flex') are included.
+   C) Make sure that MRMC_HOME_DIRECTORY_NAME does not contain spaces.
+   D) Proceed with the point II. below.
+
+II. To build MRMC on Linux/Mac OS X/Windows+Cygwin do the following
+   A) Open the console (for Windows run the Cygwin console)
+   B) Run: 'cd MRMC_HOME_DIRECTORY_NAME'
+   C) Run: 'make all'
+
+   After that you will find two new directories MRMC/bin and MRMC/lib
+        -MRMC/bin/mrmc     -- the MRMC executable (Linux, Mac OS X)
+                               (MRMC/bin/mrmc.exe Windows+Cygwin)
+        -MRMC/lib/mrmc.a   -- the static library that is the MRMC core
+                               (MRMC/lib/mrmc.lib Windows+Cygwin)
+
+   In order to clean up distribution, i.e. to remove all object files and
+   pre-compiled binaries run
+        make clean
+   This is also recommended to do before every recompilation of the MRMC sources.
+
+-----------------------------------------------------------------
+             3. Running binary version of MRMC on Linux
+-----------------------------------------------------------------
+Running MRMC on Windows, Linux or Mac OS X is similar:
+
+   A) First open the console, on Windows you can use a DOS console or a Cygwin console.
+   B) Change directory to the folder where the MRMC binary is located.
+      This is normally a "bin" sub-folder of the MRMC distribution tree.
+   C) Then run mrmc keeping in mind the following command-line options:
+            mrmc <logic> <options> <.tra file> <.lab file> <.rew file> <.rewi file>
+        where
+            <logic>         - could be one of {csl, pctl, prctl, csrl}.
+            <options>       - could be one of {-ilump, -flump}, optional.
+            <.tra file>     - is the file with the matrix of transitions.
+            <.lab file>     - contains labeling.
+            <.rew file>     - contains state rewards (for PRCTL/CSRL).
+            <.rewi file>    - contains impulse rewards (for CSRL, optional).
+
+After the MRMC starts you find that it is an interactive command line tool.
+So you get a console using which you can interact with the model checker.
+For example enter
+        help
+to get information about the MRMC commands and syntax of the formulas,
+        print
+to get the current default settings of the MRMC, or
+        quit
+to finish the working session.
+
+Note that -ilump and -flump options enable formula independent and
+formula dependent lumping. This is a technique that allows to reduce
+the size of a considered Markov Chain and thus to decrease time required
+for model checking. For more information on lumping please consider reading:
+	http://www.cs.utwente.nl/~zapreevis/downloads/BibTex/KatoenKZJ_TACAS07.pdf
+	http://www.cs.utwente.nl/~zapreevis/downloads/BibTex/KatoenKZJ_TACAS07.bib
+
+-----------------------------------------------------------------
+                      4. Running test suites
+-----------------------------------------------------------------
+The test-suite allows to perform internal, functional and performance testing on MRMC.
+
+WARNING: This test suite was mostly tested on a Linux platform.
+         Currently internal and functional tests run on all MRMC
+         supported platforms but it is not possible to run the
+         performance tests on "Windows+Cygwin" or "Mac OS X".
+
+The test suite is no longer distributed with the MRMC sources,
+but it can be freely downloaded from:
+         http://www.cs.utwente.nl/~zapreevis/mrmc/downloads.php
+
+==== Getting and installing the test suite:
+
+    1. Download an MRMC test-suite version that is compatible with your version oof MRMC.
+          For example: "mrmc_test_v1.2.2.zip" for the MRMC version 1.2.2
+    2. Unpack it in the MRMC folder.
+          For example: "mrmc_test_v1.2.2.zip" is going to produce
+                        the "rmc_test_v1.2.2" sub-folder.
+
+==== Further details:
+
+For more details on the test suite consider reading the READ.ME file
+in the root of the MRMC test-suite distribution.
+
+-----------------------------------------------------------------
+                         5. Getting MRMC models
+-----------------------------------------------------------------
+
+MRMC models can be generated from Prism models, using the command line Prism
+starting from the version 3.0:
+
+   http://www.cs.bham.ac.uk/~dxp/prism/download.php
+
+The required options of "prism" are listed here and were obtained by running "prism -help":
+
+-exportmrmc .................... When exporting matrices/vectors/labels, use MRMC format
+-exportlabels <file> ........... Export the list of labels and satisfying states to a file
+-exporttrans <file> ............ Export the transition matrix to a file
+-exportstaterewards <file> ..... Export the state rewards vector to a file
+-exporttransrewards <file> ...... Export the transition rewards matrix to a file
+
+NOTE: The "transition rewards" are what we refer to as "impulse rewards".
+
+A typical example of generating MRMC model from the Prism model would be:
+
+   $ prism model.sm model.csl -exportmrmc -exportlabels model.lab -exporttrans model.tra -exportstaterewards model.rew -exporttransrewards model.rewi
+
+The resulting model.tra model.lab model.rew model.rewi files can be immediately consumed by MRMC.
+
+Some more information on generating MRMC models using Prism can be found here:
+
+   http://www.cs.bham.ac.uk/~dxp/prism/manual/RunningPRISM/ExportingTheModel
+
+-----------------------------------------------------------------
+                           6. Licensing
+-----------------------------------------------------------------
+MRMC is distributed under the GNU General Public License (GPL).
+A local copy of this license is contained in the file LICENSE.txt.
+For more details, see:
+
+  http://www.gnu.org/licenses/
+
+-----------------------------------------------------------------
+                           7. Contacts
+-----------------------------------------------------------------
+If you have any questions, comments or ideas, please contact us at:
+
+        MRMC-Tool Team <mrmc@cs.utwente.nl>
+
+All extra contact information can be found on the following web-page:
+        http://www.cs.utwente.nl/~zapreevis/mrmc/
+
+You may also directly contact:
+
+        Ivan S. Zapreev
+        Formal Methods and Tools Group, University of Twente,
+        E-mail: zapreevis@cs.utwente.nl
+OR
+        Ivan S. Zapreev
+        Chair for Software Modeling and Verification, RWTH-Aachen,
+        Lehrstuhl für Informatik 2, RWTH Aachen, 52056 Aachen, Germany
+        Phone: +49 (0)241 80 21206
+        Fax:   +49 (0)241 80 22217
+        E-mail: zapreevis@cs.rwth-aachen.de
+
+-----------------------------------------------------------------
+                         8. The old release notes
+-----------------------------------------------------------------
+
+Previous releases:
+
+======1.2.2
+
+                              ---Algorithms---
+
+    * Added the Gauss-Seidel algorithm for solving systems of linear equations.
+      Which is now set to be the default method when model checking the time-
+      unbounded until operator of the CSL (PCTL) logic.
+    * Added a non-recursive search method for BSCCs to make BSCC search possible when
+      the recursive method runs out of available stack space. This is applicable for
+      model checking the steady-state operator of the CSL (long-run operator of
+      the PCTL) logic, and the on-the-fly steady-state detection for time-bounded
+      and time-interval operators of CSL.
+
+                              ---Usability---
+
+    * MRMC is now compilable and possible to use on MAC OS X.
+    * The command-prompt command 'set method_path' now allows for the value 'gauss_seidel'.
+      The latter means that a more efficient Gauss-Seidel method for solving systems of
+      linear equations is now available for use when model checking time-unbounded and
+      steady-state (long-run) operators of CSL (PCTL) logic.
+    * A new command-prompt command 'set method_bscc' allows to change the BSCC search
+      method. The 'recursive' method is now up to 2 (two) times faster than the one in
+      MRMC version 1.2.1 and the new 'non_recursive' method allows to avoid stack overflows
+      during the BSCC search.
+
+                        ---Source code improvements---
+
+    * Structural changes were made to the bit sets in order to improve the tool performance.
+    * Copying bit sets and setting all bits in a BITNET to one is now more efficient.
+    * Structural changes and optimizations were made in the internal stack structure.
+
+                                ---Testing---
+
+    * Updated internal test to make them run on MAC OS X.
+    * New functional tests were added since Gauss-Seidel algorithm and non-recursive BSCC
+      search are now available.
+    * Added a settings option to define where valgrind log files should be stored when
+      running test with valgrind mode on. For every test an own log file is created.
+    * A technical script for comparing the differences between the output and golden file
+      probabilities was added in order to evaluate result variations for a given error-bound.
+
+======1.2.1
+
+                              ---Algorithms---
+
+    * The uniformization rate (CSL) is now taken as exactly the maximum exit rate
+      It does not influence the steady-state detection but does speed up the
+      convergence.
+    * Improved check for the discretization factor for the Tijms-Veldman Discretization
+      (CSRL time- and reward- bounded until). The optimal discretization rate is suggested
+      now from the start.
+    * The intermediate probabilities for the steady-state operator are now discarded
+      after the MRMC runtime settings are changed (error bound, iterative method for
+      the steady-state operator, and the maximum number of iterations).
+    * The Gauss Seidel iterative method is now set as the default to be used while model checking
+      the steady-state operator.
+    * The probabilistic bounds are now checked taking into account the error bound of computations
+      ('P{ OP R }[ PFL ]', 'L{ OP R }[ SFL ]' and 'S{ OP R }[ SFL ]' formulas).
+      For example, if computations were done with the error bound E and we check
+      for probabilities to be "OP R" then we check the computed values to be "OP (R + E)"
+      for OP in {<, <=} and "OP (R - E)" for OP in {>, >=}.
+
+                              ---Usability---
+
+    * Extended 'print' output with the logic and lumping mode information.
+    * New command-prompt commands allow to access the resulting probabilities by the state id.
+      The same goes for checking whether the state satisfies the formula or not.
+      See '$RESUTL[I]' and '$STATE[I]' for more details.
+    * New command-prompt commands allow for disabling/enabling of results output.
+      See 'set print on' and 'set print off' for more details.
+    * The model-checking results are now printed only for the overall formula, intermediate
+      results are omitted.
+    * Optimized and improved printing of model-checking time. The total-elapsed time is now
+      printed only once, after the model checking of the formula is finished, and is in milliseconds.
+    * An explicit warning is given if an atomic proposition, used in the formula, is not known.
+    * An explicit error message is now given if the iterative method does not converge
+      within the given maximum number of iterations.
+    * Changed warnings in the Fox Glynn algorithm into error messages.
+    * The output for the steady-state (CSL) and long-run (PCTL) operators has slightly changed.
+    * Improved the syntax error messaging in the command prompt.
+    * Changed command-prompt command's syntax:
+       - "ssd_on" turned into "set ssd on"
+       - "ssd_off" turned into "set ssd off"
+
+                        ---Source code improvements---
+
+    * Fixed memory leaking and segmentation faults when provided a syntactically
+      incorrect formula in the command prompt.
+    * Fixed memory leaking in:
+      - Parser component
+      - PRCTL logic model-checking component
+    * Improved token names in the grammar file.
+    * Fixed a bug that allowed MRMC to start in the BLANK mode.
+    * Parser was separated from the business logic of the model checker.
+      See 'src/io/parser' for details.
+    * Fixed a memory-misuse bug for the time bounded until in PCTL logic.
+
+                                ---Testing---
+
+    * Memory statistics for MRMC runs was added into the performance test suite.
+    * Several bugs were fixed in the performance test-suite scripts.
+    * New performance tests for lumping were added:
+    * New functional tests were added for all logics.
+    * The functional test suite was reorganized in order to provide more
+      flexibility for its extension.
+    * Most golden files were updated.
+    * The documentation has been improved and extended.
+
+======1.2
+
+This release contains but is not limited by the following improvements:
+
+                              ---Algorithms---
+
+    * Support of formula dependent and formula independent lumping for PCTL,
+      CSL, PRCTL, CSRL logics.
+        + For the formula-dependent lumping we support only Until operators.
+        + We do not support lumping with impulse rewards for PRCTL and CSRL logics.
+    * The Tijms-Veldman Discretization algorithm for CSRL has now checks for the proper
+      value of discretization factor and resulting probabilities.
+
+                              ---Usability---
+
+    * Improved command-line parameters support and results output:
+         + The order of input-file names and command-line parameters of
+           MRCM is not important any more.
+         + Most probabilities are now printed with the number of digits after the
+           decimal point corresponding to the desired error bound.
+         + Enhanced error and warning messages have been added.
+
+                        ---Source code improvements---
+
+    * Optimized performance, fixed memory leaks and various implementation bugs.
+    * Major source code and built scripts refinement and restructurization was done.
+    * All known compilation warnings were eliminated.
+
+                                ---Testing---
+
+    * An extended, separately distributed, test suite has been added:
+        + New performance tests were added for comparing performance of
+          MRMC with and without lumping:
+            - This includes gathering statistical data and plotting results into pdf files.
+        + Test scripts support for flexible management of the test lists. Such as running internal
+          tests, functional and performance tests in separate and all together. For functional and
+          performance tests it is possible to run tests under Valgrind profiler tool which lets
+          profiling memory management in MRMC on various examples: http://valgrind.org/
+        + The test suite is now freely download-able from:
+            http://www.cs.utwente.nl/~zapreevis/mrmc/downloads.php
+
+======1.1 beta
+
+This release fixes two bugs (see buglist.txt) in implementation related to CSL logic.
+1. BUG 008: The first bug was visible when model checking of the same Next operator
+users were getting different results. When the first run was giving the correct one.
+2. BUG 009: The second bug was related to the Interval Until operator. To make a long story short
+the implementation was flawed and model checking was giving incorrect results, but
+now it seems to be fixed.
+
+The corresponding tests were added to the test suite, see:
+test/functional_tests/csl_interval_until_01
+test/functional_tests/csl_next_01
+
+We would like to thank Jose Martinez <http://www.cs.utwente.nl/~martinez/>
+for detecting these bugs!

@@ -1,0 +1,7 @@
+set terminal latex
+set output "qest_05_figure_05.tex"
+set title "State and impulse rewards"
+set xlabel "Time"
+set ylabel "Reward"
+set key left top
+plot "qest_05_figure_05.dat" using 1:2 title "Total reward" with lines

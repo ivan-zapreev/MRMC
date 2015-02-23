@@ -1,0 +1,12 @@
+*/CVS/*
+*.eps
+*.statistics
+*~
+*.results
+*.memstat
+*.dat
+*.out
+*.diff
+*.o
+*.memstat.new
+*.tmp

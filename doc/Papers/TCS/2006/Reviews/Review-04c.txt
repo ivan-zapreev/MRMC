@@ -1,0 +1,58 @@
+TCS-QAPL 2006 Special Issue Review Form
+
+
+ Review  
+
+   Paper number: 04
+   Title:        Safe On-The-Fly Steady-State Detection for 
+                 Time-Bounded Reachability
+   Author(s):    Joost-Pieter Katoen, Ivan S. Zapreev
+   
+
+ Detailed Comments
+
+The paper deals with detection of steady state equilibrium distribution
+in CTMCs at early stages, i.e. before the end of large time bound. This
+is used for optimizing computation in transient analysis. This problem
+is particularly relevant in model checking for CTMCs, for example for
+checking time-bounded formulae, such as the until U operator in CSL. 
+The paper is mainly concerned to show an improvement on the error
+bounds for detecting equilibria during time-bounded reachability.  In
+order to safely detect equilibria (without introducing new errors), the
+authors also devise a method that exploits the structure of CTMCs and
+the algorithms for detecting steady state. 
+
+The work is rather interesting and fits well with the topics covered by
+the QAPL workshop. The paper does however suffer from a number of
+problems, the two major ones being the lack of a strong contribution,
+and the poor quality of the presentation. There are also several minor
+problems, such as a number of English problems and typos, which can be
+easily fixed by a careful pass on the paper.
+
+For what concerns the weak contribution, the work presented in the paper
+has been already published in the QAPL workshop and in Quest-2006. While
+such a publication could of course provide the basis for a journal
+publication, the current version includes proofs for the results but not
+much more. I thus think that there is not enough novel material to
+justify a journal publication.
+
+The proofs can also be considered to illustrate the second problem,
+namely the poor structure and presentation of the work. Several passages
+of the paper are quite obscure and not properly motivated and explained
+(e.g. the use of model checking in the introduction or, even more
+seriously, the semantics of CSL); in particular some of the long proofs
+would require a better guidance, more high-level explanations of what is
+the gist behind the results, and proper definitions. Theorem 2.5
+provides a useful example of all this (but other technical parts also
+suffer from similar problems):
+- aperiodic is not properly defined
+- the theorem is very confusing and even seems to contradict itself:
+  ||.||v is an arbitrary vector norm but the theorem does not hold for
+  arbitrary vector norms, but only for those that satisfy the additional
+  condition stated in the footnote.
+
+Both these two problems require major revisions and, in fact, quite some
+rewriting of the paper, to make it more readable and correct. They are
+thus too serious for the paper to be acceptable for publication in a
+special issue of Theoretical Computer Science, and I therefore recommend
+rejection.

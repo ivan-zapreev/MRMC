@@ -1,0 +1,267 @@
+Dear Mr. Ivan Zapreev:
+
+I am sorry to inform you that the following submission 
+was not selected by the program committee to appear at 
+DSN/PDS 2006: 
+
+      Safe On-The-Fly Steady-State Detection for
+           Time-Bounded Reachability
+
+The selection process was very competitive, with 23 papers
+accepted for just under 100 submissions. We very much thank
+you for your submission and interest in PDS.  
+
+Below, you find enclosed the reviewer comments for your 
+perusal.
+
+We note that DSN holds various additional sessions that
+you may find of interest: fast abstracts, a student forum
+and tool demonstrations.  You can find more information
+at http://www.dsn.org.  I hope we will still be able to
+meet at DSN/PDS in June in Philadelphia.
+
+If you have any additional questions, please feel free 
+to contact me,
+
+best regards, 
+
+Aad van Moorsel
+Program Chair 
+PDS 2006 
+
+>>>>>
+
+In the reviews, the meaning of the marks is as follows:
+
+confidence (1-4) 
+ 1: I am not an appropriate reviewer for this paper 
+ 2: I am comfortable reviewing papers on this topic 
+ 3: I am very knowledgeable about this topic 
+ 4: I am an expert on this topic
+
+relevance (1-4) 
+ 1: Not interesting for PDS 
+ 2: Of interest to PDS 
+ 3: Somewhat important for PDS 
+ 4: Very important for PDS
+
+originality (1-4) 
+ 1: Nothing new 
+ 2: Minor twist 
+ 3: Innovative 
+ 4: Truly novel
+
+overall (1-5) 
+ 1: Definite reject 
+ 2: Reject 
+ 3: Borderline 
+ 4: Accept 
+ 5: Strong Accept 
+
+
+============================================================================ 
+PDS 2006 Reviews for Submission #57
+============================================================================ 
+
+Title: Safe On-The-Fly Steady-State Detection for Time-Bounded Reachability
+
+Authors: Joost-Pieter Katoen and Ivan S. Zapreev
+============================================================================
+                            REVIEWER #1
+============================================================================ 
+
+
+                           Reviewer's Scores
+                  -----------------------------------
+
+                              confidence: 4
+                               relevance: 4
+                             originality: 2
+                                 overall: 2
+
+
+---------------------------------------------------------------------------
+                          Detailed Comments
+---------------------------------------------------------------------------
+
+This paper presents an algorithm for detecting steady state on-the-fly during
+transient analysis. The algorithm is supposed to be more efficient than
+existing algorithms because it is based on a refinement of the Fox-Glynn
+algorithm for computing Poisson probabilities. The refinement considers the
+case when the function "f" in the Fox-Glynn algorithm does not change sign. The
+presented algorithm has immediate application in probabilistic model checkers
+for solving time-bounded reachability problems that can be expressed as
+continuous-time Markov chains. 
+
+The strongest reason that DSN should accept this paper is that it raises the
+important issue of detecting steady state efficiently on-the-fly during
+transient analysis of Markov chains. The paper also presents well how
+on-the-fly steady-state detection is used in probabilistic model checking.
+
+The strongest reasons that DSN should reject this paper are the
+following:
+
+- The limiting state probability vector in Table 1 is not correct. I think it
+should be (0.0, 0.0, 1.0). Perhaps this is a typographical error? 
+
+- The main proposition in the paper is flawed. In particular, the refinement of
+the Fox-Glynn bounds (in Proposition 5), on which the steady-state on-the-fly
+detection algorithm is based, is not correct. The refinement is based on
+equation (25) in the paper. The first inequality in this equation cannot be
+established since  0 <= f(i) <= ||f|| (for this case in which f is
+non-negative). Since other theorems and corollaries are based on this
+proposition, they are probably not correct also. 
+
+- In addition to the data showing that the algorithm can detect steady state
+safely, the authors should also present data showing that the algorithm is more
+efficient (e.g. has better runtime) than existing algorithms. Figure 4 only
+shows the comparison between having steady-state detection on and off for the
+authors' tool MRMC. There is no data showing that the algorithm is more
+efficient than other algorithms, which is one of the claims in the paper.
+
+The paper can be improved by considering the following additional
+suggestions: 
+
+- Page 2, 2nd paragraph: "from the state of interest" might be confused as
+referring to the goal state. Perhaps "from a given state" is better.
+
+- Page 3, last parag: j in p*(0)_j should probably be i for consistency.
+
+- Page 9, equation between equations (24) and (25): indexing using i for two
+summations can be ambiguous.
+
+- Page 11, last parag: It is not clear what the contention of the authors is
+with regards to where the index i starts (0 or L_epsilon). It seems that the
+indexing should be as in equation (28) so that the unaccounted for
+probabilities can be computed.
+
+- Page 19, last parag: I think the starting state is 1 instead of 0.
+
+- Many words throughout the paper are broken up, for example, "fi nish" on page
+1, first parag.
+
+- The paper does not meet the formatting requirements. It seems to have 23
+pages, single spaced, and smaller font.
+
+============================================================================
+                            REVIEWER #2
+============================================================================ 
+
+
+                           Reviewer's Scores
+                  -----------------------------------
+
+                              confidence: 2
+                               relevance: 3
+                             originality: 3
+                                 overall: 4
+
+
+---------------------------------------------------------------------------
+                          Detailed Comments
+---------------------------------------------------------------------------
+
+This paper presents a method to obtain solution efficiency and
+accuracy for time-bounded reachability problems with CTMCs.
+More specifically, it develops a solution for the probability to
+reach a goal state or a set of goal states within a given time bound,
+such that prior to reaching the goal certain states are avoided.
+The study yields a procedure for steady-state detection for
+time-bounded reachability problems during CTMC transient analysis,
+called on-the-fly steady state detection.
+
+Motivation is clearly illustrated and mathematical basics are
+introduced in Section 2.  The derivation sections look sophisticated
+and solid.  (But I am not a model solution person and am a modeling
+application person.)
+
+The experimental results validate the effectiveness of the approach.
+That section is fairly interesting.  However it looks thin when
+compared with those other sections on mathematical derivation.
+It is not explained why those two problems have to be treated as
+time-bounded reachability problems, instead of directly using
+standard methods for transient CTMC analysis.  Also it's a kind of
+disappointing that neither the "slowly convergent CTMC" example nor
+the workstation cluster problem addresses the problem type that is
+highlighted in the introductory section, i.e., the applications in
+which certain states must be avoided before reaching the goal state(s).
+
+A possible typo: should the starting state 0 be the left most state
+that has a low outgoing rate and a high incoming rate?
+
+============================================================================
+                            REVIEWER #3
+============================================================================ 
+
+
+                           Reviewer's Scores
+                  -----------------------------------
+
+                              confidence: 1
+                               relevance: 3
+                             originality: 3
+                                 overall: 3
+
+
+---------------------------------------------------------------------------
+                          Detailed Comments
+---------------------------------------------------------------------------
+
+The paper presents in detail an algorithm for detecting steady-state
+on-the-fly, when performing transient analysis of continuous-time Markov chain.
+The detection algorithm is based on a well-known result published by Fox-Glyn.
+They explore the structure of the model to safely detect equilibrium.
+
+The paper seems to be well-written and all details of the algorithm are given,
+which makes it very hard to follow; 
+
+The question is: is the paper well adapted for an oral presentation in a
+conference like PDS?
+
+============================================================================
+                            REVIEWER #4
+============================================================================ 
+
+
+                           Reviewer's Scores
+                  -----------------------------------
+
+                              confidence: 2
+                               relevance: 3
+                             originality: 2
+                                 overall: 3
+
+
+---------------------------------------------------------------------------
+                          Detailed Comments
+---------------------------------------------------------------------------
+
+This paper contains some publishable material, but it is very poorly explained
+and motivated. The title, some of the notation, and much of the text, is more
+confusing than enlightening. The authors keep talking about 'steady-state
+detection', but the problem considered is basically one of computing the
+distribution of certain first passage times of a Markov process from some
+states to some other states. This computational problem has nothing to do with
+steady-state detection (which is the statistical problem of deciding whether an
+observed process can be said to have reached steady-state or not). The fact
+that an embedded discrete time Markov chain is used in the computation, and the
+latter's steady-state probabilities are used in order to formulate a
+termination criterion, is incidental. What is being computed is still a
+transient quantity; the question is when to stop the iterations in order to
+obtain an accurate result. None of that is really made clear.
+
+Specific comments.
+1. There is no need to present known and already published material (most of
+sections 2 and 3).
+2. The notation $\gamma(i)$ (eqn (9) and later) should be replaced by 
+$\gamma_i(t)$. Similarly for $w(i)$.
+3. There is no need for the 0 in $\pi(0,t)$, $\pi^*(0,t)$, $p(0,i)$ and 
+$p^*(0)$.
+4. The examples are not very illuminating: the graphs are almost unreadable; a
+plot labeled 'MatLab' appears to be missing; how can the steady-state vector
+$p^*$ in table 1 be equal to (1,1,1)? (What is the embedded Markov chain in
+this case?)
+5. Figure 4, which is presented in order to summarize the achievements of the
+paper, is quite meaningless. In it, time is allowed to grow to very large
+values. But we know, trivially, that in the long run any target state is
+reached with probability 1, so what exactly is being computed here and why?

@@ -1,0 +1,31 @@
+\begin{picture}(0,0)%
+\includegraphics{poisson_ssd_trans.pstex}%
+\end{picture}%
+\setlength{\unitlength}{3947sp}%
+%
+\begingroup\makeatletter\ifx\SetFigFont\undefined%
+\gdef\SetFigFont#1#2#3#4#5{%
+  \reset@font\fontsize{#1}{#2pt}%
+  \fontfamily{#3}\fontseries{#4}\fontshape{#5}%
+  \selectfont}%
+\fi\endgroup%
+\begin{picture}(5791,4069)(856,-11524)
+\put(3076,-7786){\makebox(0,0)[lb]{\smash{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}{\footnotesize $\alert{\vppO} = lim_{i \to \infty} \vpOi$},}%
+}}}}
+\put(1651,-7786){\makebox(0,0)[lb]{\smash{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}{\footnotesize $\alert{\vpOi}= \vpO \cdot \mU^{i}$},}%
+}}}}
+\put(4651,-7786){\makebox(0,0)[lb]{\smash{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}{\footnotesize $\alert{K} : \nvecinf{\vppO - \vpOK}\leq \delta$}}%
+}}}}
+\put(2926,-8461){\makebox(0,0)[lb]{\smash{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}\only<1,4>{$\alert{\vpiOt} = \frac{1}{W}\sum_{i=\ltp}^{\rtp}\wi \vpOi$}}%
+}}}}
+\put(3451,-8461){\makebox(0,0)[lb]{\smash{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}\only<2>{$\alert{\vpiOt} = \textcolor{blue}{\vpOK}$}}%
+}}}}
+\put(1651,-8461){\makebox(0,0)[lb]{\smash{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}\only<3>{$\alert{\vpiOt} = \frac{1}{W}\sum_{i=\ltp}^{\textcolor{blue}{K}}\wi \vpOi + \frac{1}{W} \textcolor{blue}{\vpOK} \sum_{i=\textcolor{blue}{K+1}}^{\rtp} \wi $}}%
+}}}}
+\put(5476,-9886){\makebox(0,0)[lb]{\smash{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}\textcolor{red}{\only<4>{$\rtp \leq K < \infty$}}}%
+}}}}
+\put(1726,-9886){\makebox(0,0)[lb]{\smash{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}\textcolor{red}{ \only<2>{$0 \leq K < \ltp$}}}%
+}}}}
+\put(3526,-9886){\makebox(0,0)[lb]{\smash{{\SetFigFont{12}{14.4}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}\textcolor{white}{\only<3>{$\ltp \leq K \leq \rtp$}}}%
+}}}}
+\end{picture}%

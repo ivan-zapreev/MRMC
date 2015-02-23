@@ -1,0 +1,12 @@
+*/CVS/*
+*~
+*.o
+*/BibTex/*
+*/Internal*
+*/LaTexPackages/*
+*/Papers/*
+*/Posters/*
+*/Presentations/*
+*/Technical*
+*/global_etmcc.tex
+*/include/mrmc_grammar.tab.h

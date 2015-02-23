@@ -1,0 +1,9 @@
+./test/clean_all.sh
+./test/stop.sh
+./test/test_all.sh
+./test/settings.cfg
+./test/READ.ME
+./test/LICENSE.txt
+./test/functional_tests
+./test/internal_tests
+./test/performance_tests

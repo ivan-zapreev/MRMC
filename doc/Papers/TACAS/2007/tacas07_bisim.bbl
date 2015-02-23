@@ -1,0 +1,254 @@
+\begin{thebibliography}{10}
+
+\bibitem{AndovaHK_FORMATS03}
+Suzana Andova, H.~Hermanns, and Joost-Pieter Katoen.
+\newblock Discrete-{T}ime {R}ewards {M}odel-{C}hecked.
+\newblock In K.G. Larsen and P.~Niebert, editors, {\em Formal Modeling and
+  Analysis of Timed Systems (FORMATS)}, volume 2791, pages 88--104. LNCS,
+  Springer, 2003.
+
+\bibitem{AzizSSB_ACMTCL00}
+Adnan Aziz, Kumud Sanwal, Vigyan Singhal, and Robert Brayton.
+\newblock Model-checking continuous-time {M}arkov chains.
+\newblock {\em ACM Transactions on Computational Logic}, 1(1):162--170, 2000.
+
+\bibitem{AzizSSBSV_CAV95}
+Adnan Aziz, Kumud Sanwal, Vigyan Singhal, Robert~K. Brayton, and Alberto~L.
+  Sangiovanni-Vincentelli.
+\newblock It {U}sually {W}orks: {T}he {T}emporal {L}ogic of {S}tochastic
+  {S}ystems.
+\newblock In P.~Wolper, editor, {\em Computer Aided Verification (CAV)}, volume
+  939 of {\em LNCS}, pages 155--165. Springer, 1995.
+
+\bibitem{BaierHHK_TSE03}
+C.~Baier, B.~Haverkort, H.~Hermanns, and J.-P. Katoen.
+\newblock Model-{C}hecking {A}lgorithms for {C}ontinuous-{T}ime {M}arkov
+  {C}hains.
+\newblock {\em IEEE Transactions on Software Engineering}, 29(6):524--541,
+  2003.
+
+\bibitem{BaierCG_SIGMETRICS05}
+Christel Baier, Frank Ciesinski, and Marcus Gr{\"o}{\ss}er.
+\newblock Prob{M}ela and verification of {M}arkov decision processes.
+\newblock {\em ACM SIGMETRICS Performance Evaluation Review}, 32(4):22--27,
+  2005.
+
+\bibitem{BaierHHK_ICALP00}
+Christel Baier, Boudewijn~R. Haverkort, Holger Hermanns, and Joost-Pieter
+  Katoen.
+\newblock On the {L}ogical {C}haracterisation of {P}erformability {P}roperties.
+\newblock In Ugo Montanari, José D.~P. Rolim, and Emo Welzl, editors, {\em
+  International Colloquium on Automata, Languages and Programming (ICALP)},
+  volume 1853 of {\em LNCS}, pages 780--792. Springer, 2000.
+
+\bibitem{BaierKHW_IC05}
+Christel Baier, Joost-Pieter Katoen, Holger Hermanns, and Verena Wolf.
+\newblock Comparative branching-time semantics for {M}arkov chains.
+\newblock {\em Information and Computation}, 200(2):149--214, 2005.
+
+\bibitem{BodeHHJPPWB_QEST06}
+Eckard Bode, Marc Herbstritt, Holger Hermanns, Sven Johr, Thomas Peikenkamp,
+  Reza Pulungan, Ralf Wimmer, and Bernd Becker.
+\newblock Compositional {P}erformability {E}valuation for {STATEMATE}.
+\newblock In {\em Quantitative Evaluation of Systems (QEST)}, pages 167--178.
+  IEEE Computer Society, 2006.
+
+\bibitem{Buchholz_JAP94}
+P.~Buchholz.
+\newblock Exact and ordinary lumpability in finite {M}arkov chains.
+\newblock {\em Journal of Applied Probability}, 31:59--75, 1994.
+
+\bibitem{DAprileDS_DS04}
+Davide D'Aprile, Susanna Donatelli, and Jeremy Sproston.
+\newblock {CSL} {M}odel {C}hecking for the {GreatSPN} {T}ool.
+\newblock In Cevdet Aykanat, Tugrul Dayar, and Ibrahim Korpeoglu, editors, {\em
+  Computer and Information Sciences}, volume 3280 of {\em LNCS}, pages
+  543--553. Springer, 2004.
+
+\bibitem{DArgenioJJL_PAPMPROBMIV01}
+Pedro~R. D'Argenio, Bertrand Jeannet, Henrik~Ejersbo Jensen, and Kim~Guldstrand
+  Larsen.
+\newblock Reachability {A}nalysis of {P}robabilistic {S}ystems by {S}uccessive
+  {R}efinements.
+\newblock In Luca de~Alfaro and Stephen Gilmore, editors, {\em Process Algebra
+  and Probabilistic Methods, Performance Modeling and Verification
+  (PAPM/PROBMIV)}, volume 2165 of {\em LNCS}, pages 39--56. Springer, 2001.
+
+\bibitem{Derisavi_PhD05}
+S.~Derisavi.
+\newblock {\em Solution of Large {M}arkov Models Using Lumping Techniques and
+  Symbolic Data Structures}.
+\newblock PhD thesis, University of Illinois at Urbana-Champaign, 2005.
+
+\bibitem{DerisaviHS_IPL03}
+Salem Derisavi, Holger Hermanns, and William~H. Sanders.
+\newblock Optimal {S}tate-{S}pace {L}umping in {M}arkov {C}hains.
+\newblock {\em Information Processing Letters}, 87(6):309--315, 2003.
+
+\bibitem{FecherLW_SPIN06}
+Harald Fecher, Martin Leucker, and Verena Wolf.
+\newblock \emph{Don't {K}now} in {P}robabilistic {S}ystems.
+\newblock In Antti Valmari, editor, {\em Model Checking of Software (SPIN)},
+  volume 3925 of {\em LNCS}, pages 71--88. Springer, 2006.
+
+\bibitem{FislerV_FMCAD98}
+K.~Fisler and M.~Y. Vardi.
+\newblock Bisimulation {M}inimization in an {A}utomata-{T}heoretic
+  {V}erification {F}ramework.
+\newblock In Ganesh Gopalakrishnan and Phillip~J. Windley, editors, {\em Formal
+  Methods in Computer-Aided Design (FMCAD)}, volume 1522 of {\em LNCS}, pages
+  115--132. Springer, 1998.
+
+\bibitem{FislerV_CHARME99}
+K.~Fisler and M.~Y. Vardi.
+\newblock Bisimulation and {M}odel {C}hecking.
+\newblock In Laurence Pierre and Thomas Kropf, editors, {\em Correct Hardware
+  Design and Verification Methods (CHARME)}, volume 1703 of {\em LNCS}, pages
+  338--342. Springer, 1999.
+
+\bibitem{FislerV_FMSD02}
+K.~Fisler and M.~Y. Vardi.
+\newblock Bisimulation {M}inimization and {S}ymbolic {M}odel {C}hecking.
+\newblock In {\em Formal Methods in System Design}, volume~21, pages 39--78.
+  Kluwer Academic Publishers, 2002.
+
+\bibitem{GroesserB_FMCOB05}
+Marcus Gr{\"o}{\ss}er and Christel Baier.
+\newblock Partial {O}rder {R}eduction for {M}arkov {D}ecision {P}rocesses: {A}
+  {S}urvey.
+\newblock In Frank~S. de~Boer, Marcello~M. Bonsangue, Susanne Graf, and
+  Willem~P. de~Roever, editors, {\em Formal Methods for Components and Objects
+  (FMCO)}, volume 4111 of {\em LNCS}, pages 408--427. Springer, 2005.
+
+\bibitem{HanssonJ_FAC94}
+N.~Hansson and B.~Jonsson.
+\newblock A logic for reasoning about time and reliability.
+\newblock {\em Formal Aspects of Computing}, 6(5):512--535, 1994.
+
+\bibitem{HaverkortCHKB_DSN02}
+B.~Haverkort, L.~Cloth, H.~Hermanns, J.-P. Katoen, and C.~Baier.
+\newblock Model {C}hecking {P}erformability {P}roperties.
+\newblock In {\em Dependable Systems and Networks (DSN)}, pages 103--112. IEEE
+  Computer Society, 2002.
+
+\bibitem{HaverkortHK_SRDS00}
+B.~Haverkort, H.~Hermanns, and J.-P. Katoen.
+\newblock On the {U}se of {M}odel {C}hecking {T}echniques for {D}ependability
+  {E}valuation.
+\newblock In {\em Symposium on Reliable Distributed Systems (SRDS)}, pages
+  228--237. IEEE Computer Society, 2000.
+
+\bibitem{HermannsKNPS_JLAP03}
+Holger Hermanns, Marta~Z. Kwiatkowska, Gethin Norman, David Parker, and Markus
+  Siegle.
+\newblock On the use of {MTBDD}s for performability analysis and verification
+  of stochastic systems.
+\newblock {\em Journal of Logic and Algebraic Programming}, 56(1-2):23--67,
+  2003.
+
+\bibitem{Hillston_96}
+Jane Hillston.
+\newblock {\em A {C}ompositional {A}pproach to {P}erformance {M}odelling}.
+\newblock Distinguished Dissertations Series. Cambridge University Press, New
+  York, NY, USA, 1996.
+
+\bibitem{HintonKNP_TACAS06}
+A.~Hinton, M.~Kwiatkowska, G.~Norman, and D.~Parker.
+\newblock {PRISM}: {A} {T}ool for {A}utomatic {V}erification of {P}robabilistic
+  {S}ystems.
+\newblock In H.~Hermanns and J.~Palsberg, editors, {\em Tools and Algorithms
+  for the Construction and Analysis of Systems (TACAS)}, volume 3920 of {\em
+  LNCS}, pages 441--444. Springer, 2006.
+
+\bibitem{Huth_VSS04}
+Michael Huth.
+\newblock An {A}bstraction {F}ramework for {M}ixed {N}on-deterministic and
+  {P}robabilistic {S}ystems.
+\newblock In Christel Baier, Boudewijn~R. Haverkort, Holger Hermanns,
+  Joost-Pieter Katoen, and Markus Siegle, editors, {\em Validation of
+  Stochastic Systems}, volume 2925 of {\em LNCS}, pages 419--444. Springer,
+  2004.
+
+\bibitem{Huth_TCS05}
+Michael Huth.
+\newblock On finite-state approximants for probabilistic computation tree
+  logic.
+\newblock {\em Theoretical Computer Science}, 346(1):113--134, 2005.
+
+\bibitem{IbeT_SAC90}
+Oliver~C. Ibe and Kishor~S. Trivedi.
+\newblock Stochastic {P}etri {N}et {M}odels of {P}olling {S}ystems.
+\newblock {\em Selected Areas in Communications}, 8(9):1649--1657, 1990.
+
+\bibitem{ItaiR_IC90}
+Alon Itai and Michael Rodeh.
+\newblock Symmetry breaking in distributed networks.
+\newblock {\em Information and Computation}, 88(1):60--87, 1990.
+
+\bibitem{KatoenKZ_QEST05}
+Joost-Pieter Katoen, Maneesh Khattri, and Ivan~S. Zapreev.
+\newblock A {M}arkov {R}eward {M}odel {C}hecker.
+\newblock In {\em Quantitative Evaluation of Systems (QEST)}, pages 243--244.
+  IEEE Computer Society, 2005.
+
+\bibitem{KatoenZ_QEST06}
+Joost-Pieter Katoen and Ivan~S. Zapreev.
+\newblock Safe {O}n-{T}he-{F}ly {S}teady-{S}tate {D}etection for
+  {T}ime-{B}ounded {R}eachability.
+\newblock In {\em Quantitative Evaluation of Systems (QEST)}, pages 301--310.
+  IEEE Computer Society, 2006.
+
+\bibitem{KwiatkowskaNP_CAV06}
+M.~Kwiatkowska, G.~Norman, and D.~Parker.
+\newblock Symmetry {R}eduction for {P}robabilistic {M}odel {C}hecking.
+\newblock In T.~Ball and R.~Jones, editors, {\em Computer Aided Verification
+  (CAV)}, volume 4114 of {\em LNCS}, pages 234--248. Springer, 2006.
+
+\bibitem{KwiatkowskaNP_QEST06}
+Marta Kwiatkowska, Gethin Norman, and David Parker.
+\newblock Game-based {A}bstraction for {M}arkov {D}ecision {P}rocesses.
+\newblock In {\em Quantitative Evaluation of Systems (QEST)}, pages 157--166.
+  IEEE Computer Society, 2006.
+
+\bibitem{LarsenS_IC91}
+Kim~G. Larsen and Arne Skou.
+\newblock Bisimulation through probabilistic testing.
+\newblock {\em Information and Computation}, 94(1):1--28, 1991.
+
+\bibitem{MamounPY_EQST06}
+Mouad~Ben Mamoun, Nihal Pekergin, and Sana Younes.
+\newblock Model {C}hecking of {C}ontinuous-{T}ime {M}arkov {C}hains by
+  {C}losed-{F}orm {B}ounding {D}istributions.
+\newblock In {\em Quantitative Evaluation of Systems (QEST)}, pages 189--198.
+  IEEE Computer Society, 2006.
+
+\bibitem{MassinkKL_DSN04}
+Mieke Massink, Joost-Pieter Katoen, and Diego Latella.
+\newblock Model {C}hecking {D}ependability {A}ttributes of {W}ireless {G}roup
+  {C}ommunication.
+\newblock In {\em Dependable Systems and Networks (DSN)}, pages 711--720. IEEE
+  Computer Society, 2004.
+
+\bibitem{Monniaux_SCP05}
+David Monniaux.
+\newblock Abstract interpretation of programs as {M}arkov decision processes.
+\newblock {\em Science of Computer Programming}, 58(1-2):179--205, 2005.
+
+\bibitem{PnueliZ_DC86}
+A.~Pnueli and L.~Zuck.
+\newblock Verification of {M}ultiprocess {P}robabilistic {P}rotocols.
+\newblock {\em Distributed Computing}, 1(1):53--72, 1986.
+
+\bibitem{ReiterR_ACMTISS98}
+M.~K. Reiter and A.~D. Rubin.
+\newblock Crowds: {A}nonymity for {Web} {T}ransactions.
+\newblock In {\em ACM Transactions on Information and System Security},
+  volume~1, pages 66--92. ACM Press, 1998.
+
+\bibitem{Sproston_TSE06}
+Jeremy Sproston and Susanna Donatelli.
+\newblock Backward {B}isimulation in {M}arkov {C}hain {M}odel {C}hecking.
+\newblock {\em IEEE Transactions on Software Engineering}, 32(8):531--546,
+  2006.
+
+\end{thebibliography}

@@ -1,0 +1,47 @@
+This is BibTeX, Version 0.99c (Web2C 7.4.5)
+The top-level auxiliary file: tacas07_bisim.aux
+The style file: plain.bst
+Database file #1: ../../../../../Thesis/thesis.bib
+Warning--can't use both volume and number fields in FislerV_FMSD02
+You've used 39 entries,
+            2118 wiz_defined-function locations,
+            778 strings with 11647 characters,
+and the built_in function-call counts, 17221 in all, are:
+= -- 1765
+> -- 770
+< -- 36
++ -- 292
+- -- 249
+* -- 1258
+:= -- 2654
+add.period$ -- 140
+call.type$ -- 39
+change.case$ -- 225
+chr.to.int$ -- 0
+cite$ -- 40
+duplicate$ -- 693
+empty$ -- 1341
+format.name$ -- 249
+if$ -- 3773
+int.to.chr$ -- 0
+int.to.str$ -- 39
+missing$ -- 39
+newline$ -- 198
+num.names$ -- 102
+pop$ -- 226
+preamble$ -- 1
+purify$ -- 188
+quote$ -- 0
+skip$ -- 539
+stack$ -- 0
+substring$ -- 1204
+swap$ -- 275
+text.length$ -- 36
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 154
+warning$ -- 1
+while$ -- 185
+width$ -- 41
+write$ -- 469
+(There was 1 warning)

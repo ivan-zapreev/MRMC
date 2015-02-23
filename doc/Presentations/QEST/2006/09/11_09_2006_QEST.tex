@@ -1,0 +1,745 @@
+\documentclass{beamer}
+
+\mode<article> % only for the article version
+{
+	\usepackage{fullpage}
+	\usepackage{hyperref}
+}
+
+\mode<presentation>
+{
+	\usetheme{boxes}
+	\usetheme{JuanLesPins}
+}
+
+\usepackage{astron}
+\usepackage{gastex}
+\usepackage{multirow}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\usepackage{pgf,pgfarrows,pgfnodes,pgfautomata,pgfheaps,pgfshade}
+
+\setbeamercovered{dynamic}
+
+%Include Macro commands
+\input{../../../../global_etmcc.tex}
+
+\title{Safe On-The-Fly Steady-State Detection for Time-Bounded Reachability}
+\author[Katoen, Zapreev]{
+	Joost-Pieter Katoen\inst{1,2} \and
+	Ivan S. Zapreev\inst{1,2}
+}
+\institute[Universities of Twente and Aachen]{
+  \inst{1}%
+  Software Modeling and Verification Group\\
+  RWTH Aachen
+  \and
+  \inst{2}%
+  Formal Methods and Tools Group\\
+  University of Twente}
+
+\begin{document}
+
+\bibliographystyle{astron}
+
+\frame{\titlepage}
+
+\section[Outline]{}
+\frame{\tableofcontents}
+
+\section{Motivation}
+
+\frame{
+       \frametitle{Outline}
+       \tableofcontents[currentsection]
+}
+
+\frame{
+	\frametitle{Motivation}
+
+	\begin{block}{Time-bounded reachability for continuous-time Markov chains}
+		\begin{enumerate}
+			\item Determine the probability to reach a (set of) goal state(s) within a given time span, such that prior to reaching the goal certain states are avoided.
+			\item Efficient algorithms for time-bounded reachability are at the heart of probabilistic model checkers such as PRISM and ETMCC.
+			\item For large time spans, on-the-fly steady-state detection is commonly applied.
+			\item To obtain correct results (up to a given accuracy), it is essential to avoid detecting premature stationarity.
+		\end{enumerate}
+	\end{block}
+}
+
+\section{On-the-fly steady-state detection}
+
+\frame{
+       \frametitle{Outline}
+       \tableofcontents[currentsection]
+}
+
+\frame
+{
+	\frametitle{Transient analysis}
+	{\small
+		\begin{block}{Transient probabilities of a CTMC}
+			For a CTMC $\CTMC$ the state-probability after a delay of $t$ time-units with the initial distribution $\vpO$:
+			\vspace{-0.1cm}
+			\begin{center}
+				$\vpipOt = \vpO \cdot e^{\mQ{\cdot}t}$
+			\end{center}
+			\vspace{-0.15cm}
+		\end{block}
+
+		\begin{block}{Jensen's method (Uniformization)}
+			\begin{itemize}
+				\item Rewrite $\mQ = \ur \cdot \left( \mU  - \mathcal{I} \right)$, where $\ur > \max_{i \in S}| q_{i,i} |$:
+					\vspace{-0.1cm}
+					\begin{center}
+						$\vpipOt = e^{-qt} \cdot \vpO \cdot e^{\mU \cdot qt}$
+					\end{center}
+					\vspace{-0.15cm}
+				\item Rewrite matrix exponent, where $\giqt = \pnd$:
+					\vspace{-0.3cm}
+					\begin{equation}
+						\vpipOt = \sum_{i=0}^{\infty}\giqt {\cdot} {\color<2>[rgb]{0,0,1}\vpO {\cdot} \mU^{i}}
+						\label{eq:until_general}
+					\end{equation}
+					\vspace{-0.35cm}
+			\end{itemize}
+		\end{block}
+	}
+}
+
+\frame{
+       \frametitle{The Fox-Glynn algorithm \cite{FoxG_ACM88}}
+
+	\begin{lemma}
+		For real-valued function $f$ with $\|f\| = \sup_{i \in \mathbb{N}}|f(i)|$ and $\sum_{i=\ltp}^{\rtp} \giqt \geq 1 - \frac{\varepsilon}{2}$ it holds:
+			{\small
+			\[
+				\left| \sum_{i=0}^{\infty} \giqt f(i) - \frac{1}{W}\sum_{i = \ltp}^{\rtp} \wi f(i) \right| \leq \only<1>{\varepsilon} \only<2>{ {\color[rgb]{0,0,1}\frac{\varepsilon}{2}} } \cdot \|f\| \quad
+			\]
+			}
+		\only<2>{ {\color[rgb]{0,0,1} if $f$ does not change sign.} }
+	\end{lemma}
+	\begin{minipage}{0.5\linewidth}
+		\begin{block}{Where}
+			${\color[rgb]{0,0,1} \alpha} \neq 0$, some constant\\
+			${\color[rgb]{0,0,1} \wi} = \alpha \giqt$\\
+			${\color[rgb]{0,0,1} W} = w(\ltp)+ \ldots + w(\rtp)$
+		\end{block}
+	\end{minipage} \hfill
+	\begin{minipage}{0.45\linewidth}
+		\begin{center}
+			%see: ../../../../Internal Documents/Steady State Detection/poisson.eps
+			\includegraphics[scale=0.35, angle=0]{poisson.eps}
+		\end{center}
+	\end{minipage}
+}
+
+\frame{
+	\frametitle{Steady-state detection}
+	
+	\scalebox{0.88}{
+		\input{poisson_ssd_trans.pstex_t}
+	}
+}
+
+\section{Time-bounded reachability}
+
+\frame{
+       \frametitle{Outline}
+       \tableofcontents[currentsection]
+}
+
+\frame{
+	\frametitle{Time-bounded reachability}
+	\begin{example}
+		Determine states from which goal states may be reached with a probability at least $0.92$, within the time interval $[0,14.5]$, while visiting only allowed states.
+		\[
+			\PZaUg{\geq 0.92}{0}{14.5}
+		\]
+		\begin{description}
+			\item[$\Al$] - allowed states
+			\item[$\Gl$] - goal states
+		\end{description}
+	\end{example}
+	\begin{definition}
+		For CTMC $\CTMC$ and $S' \subseteq S$ let CTMC $(S, \mQ')$  be obtained by making all states in $S'$ absorbing, i.e., $\mQ' = \mQ[S']$ where $q'_{i,j} = q_{i,j}$ if $i \not\in S'$ and 0 otherwise.
+	\end{definition}
+}
+
+\frame{
+	\frametitle{Computing $\PsaUg{s}{0}{t}$}
+	
+	\begin{minipage}{0.35\linewidth}
+		\begin{center}
+			\scalebox{0.45}{
+				\input{clowds_01.pstex_t}
+			}
+		\end{center}
+	\end{minipage} \hfill
+	\begin{minipage}{0.63\linewidth}
+		\vspace*{0.7cm}
+		\begin{center}
+			\begin{picture}(60,30)(0,0)
+				\def\x1{20}\def\y1{26}
+				\node(n1)(\x1,\y1){{\color[rgb]{0,0,0}$0$}}
+				\def\x2{40}\def\y2{26}
+				\node(n2)(\x2,\y2){{\color[rgb]{0,0,0}$1$}}
+
+				\def\x6{60}\def\y6{30}
+				\only<1>{ \node[Nframe=n](n6)(\x6,\y6){$\alert{\mQ}$}}
+				\only<2,3,4>{ \node[Nframe=n](n6)(\x6,\y6){$\alert{\mQnavg}$}}
+				\only<5->{ \node[Nframe=n](n6)(\x6,\y6){$\alert{\mU}$}}
+				
+				\only<-2>{
+					\def\x3{5}\def\y3{5}
+					\node(n3)(\x3,\y3){{\color[rgb]{0,0,0}$2$}}
+					\def\x4{22}\def\y4{5}
+					\node(n4)(\x4,\y4){{\color[rgb]{0,0,0}$3$}}
+					\def\x5{38}\def\y5{5}
+					\node(n5)(\x5,\y5){{\color[rgb]{0,0,0}$4$}}
+					\def\x6{55}\def\y6{5}
+					\node(n6)(\x6,\y6){{\color[rgb]{0,0,0}$5$}}
+				}
+				
+				\only<3->{
+					\def\x4{14}\def\y4{5}
+					\node(n4)(\x4,\y4){{\color[rgb]{0,0,0}$2,3$}}
+					\def\x5{47}\def\y5{5}
+					\node(n5)(\x5,\y5){{\color[rgb]{0,0,0}$4,5$}}
+				}
+				
+				\gasset{ExtNL=y, NLdist=1, ilength=-2}
+				\nodelabel[NLangle=90](n1){{\color[rgb]{0,0,0}$\Al$}}
+				\nodelabel[NLangle=90](n2){{\color[rgb]{0,0,0}$\Al$}}
+				\nodelabel[NLangle=270](n4){{\color[rgb]{0,0,0}$\Il$}}
+				\nodelabel[NLangle=270](n5){{\color[rgb]{0,0,0}$\Gl$}}
+
+				\drawedge[curvedepth=8,ELside=r](n2,n1){{\color[rgb]{0,0,0}$0.3$}}
+				\drawedge[curvedepth=8](n1,n2){{\color[rgb]{0,0,0}$0.5$}}
+				
+				\only<1>{
+					\drawedge[curvedepth=-8,ELside=r](n6,n2){{\color[rgb]{0,0,0}$1.0$}}
+					\drawedge(n5,n6){{\color[rgb]{0,0,0}$1.0$}}
+					\drawedge(n3,n4){{\color[rgb]{0,0,0}$1.0$}}
+					\drawedge(n4,n5){{\color[rgb]{0,0,0}$1.0$}}
+				}
+				\only<-2>{
+					\nodelabel[NLangle=270](n3){{\color[rgb]{0,0,0}$\Il$}}
+					\nodelabel[NLangle=270](n6){{\color[rgb]{0,0,0}$\Gl$}}
+					\drawedge(n2,n5){{\color[rgb]{0,0,0}$0.4$}}
+					\drawedge(n2,n6){{\color[rgb]{0,0,0}$0.3$}}
+					\drawedge(n1,n3){{\color[rgb]{0,0,0}$0.1$}}
+					\drawedge(n1,n4){{\color[rgb]{0,0,0}$0.4$}}
+				}
+				\only<3->{
+					\drawedge(n1,n4){{\color[rgb]{0,0,0}$0.5$}}
+					\drawedge(n2,n5){{\color[rgb]{0,0,0}$0.7$}}
+				}
+				\only<5->{
+					\drawloop[loopangle=0](n4){{\color[rgb]{0,0,0}$1.0$}}
+					\drawloop[loopangle=0](n5){{\color[rgb]{0,0,0}$1.0$}}
+				}
+			\end{picture}
+		\end{center}
+	\end{minipage}
+	\vspace*{0.1cm}
+	%{\small
+	\begin{block}{Backward algorithm}
+		%\vspace{-0.11cm}
+		\begin{enumerate}
+			\item<1-> Determine $\mQnavg$
+			%\vspace{-0.11cm}
+			\only<-4>{\item<4> Compute $\alert{\vpipt} = e^{\mQnavg {\cdot} t} {\cdot} {\color[rgb]{0,0,1}\vigl}$}
+			\only<5->{\item<5-> Use $\alert{\vpipt} = \sum_{i={\color[rgb]{0,0,1}\ltp}}^{{\color[rgb]{0,0,1}\rtp}} {\color[rgb]{0,0,1}\wi} {\cdot} \mU^{i} {\cdot} \vigl$}
+			%\vspace{-0.11cm}
+			\item<6-> Return $\forall \jinlN{s}{1}{N} : \PsaUg{s}{0}{t} = {\color[rgb]{0,0,1} \pipts}$
+		\end{enumerate}
+	\end{block}
+	%}
+}
+
+\frame{
+	\frametitle{Backward computations}
+	
+	\begin{minipage}{0.46\linewidth}
+		\vspace*{-0.5cm}
+		\hspace*{-0.8cm}
+		\begin{picture}(40,35)(0,0)
+			\def\x1{10}\def\y1{31}
+			\node(n1)(\x1,\y1){{\color[rgb]{0,0,0}$0$}}
+			\def\x2{30}\def\y2{31}
+			\only<-4>{\node(n2)(\x2,\y2){{\color[rgb]{0,0,0}$1$}}}
+			\only<5>{\node[linecolor=blue](n2)(\x2,\y2){$\textcolor{blue}{1}$}}
+			
+			\def\x4{4}\def\y4{10}
+			\node(n4)(\x4,\y4){{\color[rgb]{0,0,0}$2,3$}}
+			\def\x5{37}\def\y5{10}
+			\node(n5)(\x5,\y5){{\color[rgb]{0,0,0}$4,5$}}
+			
+			\gasset{ExtNL=y, NLdist=1, ilength=-2}
+			\nodelabel[NLangle=90](n1){{\color[rgb]{0,0,0}$\Al$}}
+			\nodelabel[NLangle=90](n2){{\color[rgb]{0,0,0}$\Al$}}
+			\nodelabel[NLangle=270](n4){{\color[rgb]{0,0,0}$\Il$}}
+			\nodelabel[NLangle=270](n5){{\color[rgb]{0,0,0}$\Gl$}}
+
+			\drawedge[curvedepth=8,ELside=r](n2,n1){{\color[rgb]{0,0,0}$0.3$}}
+			\drawedge[curvedepth=8](n1,n2){{\color[rgb]{0,0,0}$0.5$}}
+			\drawedge(n1,n4){{\color[rgb]{0,0,0}$0.5$}}
+			\drawedge(n2,n5){{\color[rgb]{0,0,0}$0.7$}}
+			\drawloop[loopangle=0](n4){{\color[rgb]{0,0,0}$1.0$}}
+			\drawloop[loopangle=0](n5){{\color[rgb]{0,0,0}$1.0$}}
+		\end{picture}
+		\begin{center}
+			\hspace{-1.2cm}
+			\addtolength{\arraycolsep}{-1mm}
+			{\color[rgb]{0,0,0}{\small $\left(
+				\begin{array}{cccc}
+					0.0 & 0.5 & 0.5 & 0.0 \\
+					0.3 & 0.0 & 0.0 & 0.7 \\
+					0.0 & 0.0 & 1.0 & 0.0 \\
+					0.0 & 0.0 & 0.0 & 1.0 \\
+				\end{array}
+			\right)^{t} \! \cdot \! \vigl \! = \! \left(
+				\begin{array}{c}
+					\only<-2>{0.0}\only<3->{0.35} \\
+					\only<1>{0.0}\only<2>{0.7}\only<3>{0.7}\only<4>{0.805} \only<5>{\textcolor{blue}{0.805}}\\
+					0.0 \\
+					1.0 \\
+				\end{array}
+			\right)$}}
+		\end{center}
+	\end{minipage} \hfill
+	\begin{minipage}{0.52\linewidth}
+		\hspace*{-0.9cm}
+		\begin{picture}(60,80)(0,0)
+			\def\x1{30}\def\y1{15}
+			\only<-4>{\node(n1)(\x1,\y1){{\color[rgb]{0,0,0}$4,5$}}}
+			\only<5>{\node[linecolor=blue](n1)(\x1,\y1){$\textcolor{blue}{4,5}$}}
+			\def\x11{69}\def\y11{15}
+			\node[Nframe=n,fillcolor=yellow,Nw=8,Nh=4,Nmr=0](n11)(\x11,\y11){$t\!=\!0$}
+			
+			\only<2->{
+					\def\x2{20}\def\y2{35}
+					\only<-4>{\node(n2)(\x2,\y2){{\color[rgb]{0,0,0}$1$}}}
+					\only<5>{\node[linecolor=blue](n2)(\x2,\y2){$\textcolor{blue}{1}$}}
+					\def\x3{40}\def\y3{35}
+					\only<-4>{\node(n3)(\x3,\y3){{\color[rgb]{0,0,0}$4,5$}}}
+					\only<5>{\node[linecolor=blue](n3)(\x3,\y3){$\textcolor{blue}{4,5}$}}
+					\def\x12{69}\def\y12{35}
+					\node[Nframe=n,fillcolor=yellow,Nw=8,Nh=4,Nmr=0](n12)(\x12,\y12){$t\!=\!1$}
+			}
+				
+			\only<3->{
+					\def\x4{10}\def\y4{55}
+					\only<-4>{\node(n4)(\x4,\y4){{\color[rgb]{0,0,0}$0$}}}
+					\only<5>{\node[linecolor=blue](n4)(\x4,\y4){$\textcolor{blue}{0}$}}
+					\def\x5{30}\def\y5{55}
+					\node(n5)(\x5,\y5){{\color[rgb]{0,0,0}$1$}}
+					\def\x6{50}\def\y6{55}
+					\only<-4>{\node(n6)(\x6,\y6){{\color[rgb]{0,0,0}$4,5$}}}
+					\only<5>{\node[linecolor=blue](n6)(\x6,\y6){$\textcolor{blue}{4,5}$}}
+					\def\x13{69}\def\y13{55}
+					\node[Nframe=n,fillcolor=yellow,Nw=8,Nh=4,Nmr=0](n13)(\x13,\y13){$t\!=\!2$}
+			}
+			
+			\only<4->{
+					\def\x7{0}\def\y7{75}
+					\only<4>{\node(n7)(\x7,\y7){{\color[rgb]{0,0,0}$1$}}}
+					\only<5>{\node[linecolor=blue](n7)(\x7,\y7){$\textcolor{blue}{1}$}}
+					\def\x8{20}\def\y8{75}
+					\node(n8)(\x8,\y8){{\color[rgb]{0,0,0}$0$}}
+					\def\x9{40}\def\y9{75}
+					\only<4>{\node(n9)(\x9,\y9){{\color[rgb]{0,0,0}$1$}}}
+					\only<5>{\node[linecolor=blue](n9)(\x9,\y9){$\textcolor{blue}{1}$}}
+					\def\x10{60}\def\y10{75}
+					\node(n10)(\x10,\y10){{\color[rgb]{0,0,0}$4,5$}}
+					\def\x14{69}\def\y14{75}
+					\node[Nframe=n,fillcolor=yellow,Nw=8,Nh=4,Nmr=0](n14)(\x14,\y14){$t\!=\!3$}
+			}
+			
+			\gasset{ExtNL=y, NLdist=1, ilength=-2}
+			\only<2->{
+				\only<-4>{\drawedge(n2,n1){{\color[rgb]{0,0,0}$0.7$}}}
+				\only<5>{\drawedge[linecolor=blue](n2,n1){$\textcolor{blue}{0.7}$}}
+				\only<-4>{\drawedge(n3,n1){{\color[rgb]{0,0,0}$1.0$}}} %[ELside=r]
+				\only<5>{\drawedge[linecolor=blue](n3,n1){$\textcolor{blue}{1.0}$}} %[ELside=r]
+			}
+			\only<3->{
+				\only<-4>{\drawedge(n4,n2){{\color[rgb]{0,0,0}$0.5$}}}
+				\only<5>{\drawedge[linecolor=blue](n4,n2){$\textcolor{blue}{0.5}$}}
+				\drawedge(n5,n3){{\color[rgb]{0,0,0}$0.7$}}
+				\only<-4>{\drawedge(n6,n3){{\color[rgb]{0,0,0}$1.0$}}} %[ELside=r]
+				\only<5>{\drawedge[linecolor=blue](n6,n3){$\textcolor{blue}{1.0}$}} %[ELside=r]
+			}
+			\only<4->{
+				\only<4>{\drawedge(n7,n4){{\color[rgb]{0,0,0}$0.3$}}}
+				\only<5>{\drawedge[linecolor=blue](n7,n4){$\textcolor{blue}{0.3}$}}
+				\drawedge(n8,n5){{\color[rgb]{0,0,0}$0.5$}}
+				\only<4>{\drawedge(n9,n6){{\color[rgb]{0,0,0}$0.7$}}}
+				\only<5>{\drawedge[linecolor=blue](n9,n6){$\textcolor{blue}{0.7}$}}
+				\drawedge(n10,n6){{\color[rgb]{0,0,0}$1.0$}} %[ELside=r]
+			}
+		\end{picture}
+	\end{minipage}
+}
+
+\frame{
+	\frametitle{Steady-state detection}
+	
+	\scalebox{0.88}{
+		\input{poisson_ssd.pstex_t}
+	}
+}
+
+\section{Results}
+
+\frame{
+       \frametitle{Outline}
+       \tableofcontents[currentsection]
+}
+
+\frame{
+	\frametitle{Refined steady-state detection error}
+	\begin{alertblock}{Backward Computations}
+	\small{
+		Let $\exists K : \forall i \geq K : \forall \jinlN{j}{1}{N} : 0 \leq \ppj - \pij \leq \delta$.
+		\begin{equation}
+			\displaystyle
+			\vpit = \left\{
+			\begin{array}{ll}
+				\vpK & \text{, if } K < \ltp\\
+				{\color[rgb]{0,0,1}\frac{1}{W}} \sum_{i=\ltp}^{K} {\color[rgb]{0,0,1}\wi} \vpi + & \\
+				\vpK \left(1- {\color[rgb]{0,0,1}\frac{1}{W}} \sum_{i=\ltp}^{K} {\color[rgb]{0,0,1}\wi} \right) & \text{, if } \ltp \leq K \leq \rtp\\
+				{\color[rgb]{0,0,1}\frac{1}{W}} \sum_{i=\ltp}^{\rtp} {\color[rgb]{0,0,1}\wi} \vpi & \text{, if } K > \rtp\\
+			\end{array}
+			\right .
+			\nonumber
+		\end{equation}
+		Then if $\sum_{i=0}^{\ltp} \giqt \leq {\color[rgb]{0,0,1}\frac{\epsilon}{4}}$, $\sum_{i=\rtp}^{\infty} \giqt \leq {\color[rgb]{0,0,1}\frac{\epsilon}{4}}$:
+		\begin{fframe}{0.5}{-0.0}
+			\[
+				\nvecinfal{ \vpipt - \vpit } \leq {\color[rgb]{0,0,1}\delta} + {\color[rgb]{0,0,1}\frac{3}{4}} \varepsilon
+			\]
+		\end{fframe}
+	}
+	\end{alertblock}
+}
+
+\frame{
+	\frametitle{Steady-state detection criteria}
+
+	\begin{alertblock}{Backward}
+		\begin{enumerate}
+			\item Steady-state is detected if $\nvecinfal{{\color[rgb]{0,0,1}\vpp} - \vpK} \leq \frac{\varepsilon}{4}$
+			\item Use the Fox-Glynn algorithm with desired error $\frac{\epsilon}{2}$
+			\item Then the overall error bound for $\PsaUg{s}{0}{t}$, will be $\epsilon$
+		\end{enumerate}
+	\end{alertblock}
+}
+
+\frame{
+	\frametitle{Comparing the results}
+
+	\begin{block}{Forward computations}
+		\begin{table}
+			\begin{center}
+				{\small
+					\begin{tabular}{cc}
+						\multicolumn{2}{l}{\emph{Known ({\small Malhotra \emph{et. al}}):} \vspace{0.1cm}}\\
+						\onslide<2->{$\nvec{\vppO - \vpOK} \leq \frac{\varepsilon}{4}$} & \onslide<3->{$ \nvec{\vpipOt - \vpiOt} \leq \varepsilon$} \vspace{0.1cm}\\
+						\multicolumn{2}{l}{\emph{New:} \vspace{0.1cm}}\\
+						\onslide<4->{$\nvecinf{\vppO - \vpOK} \leq \frac{\varepsilon}{8 |\Ind|}$} & \onslide<5->{$\left| \sum_{j \in \Ind} \left( \pipOtj - \piOtj \right) \right| \leq \varepsilon$}\\
+					\end{tabular}
+				}
+			\end{center}
+		\end{table}
+		\vspace{-0.35cm}
+	\end{block}
+
+	\begin{block}{Backward computations}
+		\begin{table}
+			\begin{center}
+				{\small
+					\begin{tabular}{cc}
+						\multicolumn{2}{l}{\emph{Known ({\small Younes \emph{et. al}}):} \vspace{0.1cm}}\\
+						\onslide<6->{$\nvec{\vpp - \vpK} \leq \frac{\varepsilon}{8}$} & \onslide<7->{$\forall j \in S : -\frac{\varepsilon}{4} \leq \piptj - \pitj \leq \frac{3}{4}\varepsilon$} \vspace{0.1cm}\\
+						\multicolumn{2}{l}{\emph{New:} \vspace{0.1cm}}\\
+						\onslide<8->{$\nvecinf{\vpp - \vpK} \leq \frac{\varepsilon}{4}$} & \onslide<9->{$\nvecinf{\vpipt - \vpit}\leq \varepsilon$}\\
+					\end{tabular}
+				}
+			\end{center}
+		\end{table}
+		\vspace{-0.35cm}
+	\end{block}
+}
+
+\frame{
+	\frametitle{Why do our results differ?}
+	
+	\begin{block}{The major reasons}
+		\begin{enumerate}
+			\item<1-> Improval of the Fox-Glynn error bound
+			\item<2-> Consideration of the error imposed by the weights $\wi$
+			\item<3-> Refinement of the error-bound derivation for steady-state detection
+			\item<4-> Restriction to $l^{\infty}$-norm
+		\end{enumerate}
+	
+	\end{block}
+}
+
+\section{Detecting steady state}
+
+\frame{
+       \frametitle{Outline}
+       \tableofcontents[currentsection]
+}
+
+\frame{
+	\frametitle{Making states absorbing, for $\ppUp{\Al}{0}{t}{\Gl}$}
+
+	\begin{center}
+		\scalebox{0.8}{
+			\only<1>{\input{clowds_01.pstex_t}}
+			\only<2>{\input{clowds_02.pstex_t}}
+			\only<3>{\input{clowds_03.pstex_t}}
+			\only<4>{\input{clowds_04.pstex_t}}
+		}
+	\end{center}
+	
+% 	\begin{block}{Time bounded reachability: $\ppUp{\Al}{0}{t}{\Gl}$}
+% 		\begin{description}
+% 			\item[$\Il$] $= S \setminus \left( \Al \cup \Gl \right)$
+% 			\item[$\Bag$] $= \left\{ s \in B \cap \left( \Al \setminus \Gl \right) | B \text{ is a BSCC in } \mQnavg \right\}$
+% 		\end{description}
+% 	\end{block}
+% 	
+% 	\begin{lemma}
+% 		For any state $s$ in CTMC $\CTMC$, time-bounded property $\ppUp{\Al}{0}{t}{\Gl}$ and $\mQB = \mQnavg \left[ \Bag \right]$ we have:
+% 		{\small
+% 			\[
+% 				\PsaUg{s}{0}{t}\text{ in }\CTMC \ = \ \PsSUg{s}{t}{t}\text{ in }(S,\mQB)
+% 			\]
+% 		}
+% 	\end{lemma}
+}
+
+\frame[label= precise]{
+	\frametitle{Precise steady-state detection, Backward computations}
+	\begin{theorem}
+		For the stochastic matrix $\mB$ obtained after uniformizing CTMC $(S,\:\mQB)$, for any $K$ and $\delta > 0$ the following holds:
+			{\small
+			\[
+				\nvecinf{ \overrightarrow{1} - \left( \vpK + \vbpK \right) } \leq \delta \Rightarrow \forall i \geq K : \nvecinf{\vpp - \vpi} \leq \delta
+			 \]
+			 }
+		\label{th:criteria_2}
+	\end{theorem}
+
+	\begin{block}{Where}
+		\begin{description}
+			\item[$\vpi$] $= \mB^{i} \cdot \vigl$
+			\item[$\vbpi$] $= \mB^{i} \cdot \vibadag$
+			\item[$\vpp$] $= \lim_{i \rightarrow \infty} \mB^{i} \cdot \vigl$
+		\end{description}
+	\end{block}
+}
+
+\section{Experiments}
+
+\frame{
+       \frametitle{Outline}
+       \tableofcontents[currentsection]
+}
+
+\frame{
+	\frametitle{Premature steady-state detection}
+	{\small
+	\begin{block}{Tools}
+		\begin{center}
+			\begin{tabular}{|c|r|r|}
+				\hline
+					Tool Name & Reference & S.s.d. method \\
+				\hline
+					\prism & \cite{KwiatkowskaNP_QEST04} & \hyperlink{regular}{\emph{regular}}\\
+				\hline
+					\etmcc & \cite{HermansKMS_IJSTTT03} & \hyperlink{regular}{\emph{regular}}\\
+				\hline
+					\mrmc & \cite{KatoenKZ_QEST05} & \hyperlink{precise}{\emph{precise}}\\
+				\hline
+			\end{tabular}
+		\end{center}
+	\end{block}
+	}
+	
+	\begin{example}
+	{\tiny
+		\begin{figure}
+			\begin{center}
+				\begin{picture}(80,25)(0,0)
+					\def\x1{10}\def\y1{10}
+					\node(n1)(\x1,\y1){$1$}
+					\def\x2{40}\def\y2{10}
+					\node(n2)(\x2,\y2){$0$}      
+					\def\x3{70}\def\y3{10}
+					\node(n3)(\x3,\y3){$2$}
+
+					\gasset{ExtNL=y, NLdist=1, ilength=-2}
+					\nodelabel[NLangle=270](n1){$\Al$}
+					\nodelabel[NLangle=270](n2){$\Al$}
+					\nodelabel[NLangle=270](n3){$\Gl$}
+
+					\drawedge[curvedepth=8](n2,n1){$0.9999$}
+					\drawedge[curvedepth=8](n1,n2){$0.00005$}
+					\drawedge(n2,n3){$0.00005$}
+				\end{picture}
+			\end{center}
+			\caption{A slowly convergent CTMC \label{gr:sc_mc}}
+		\end{figure}
+	}
+	\end{example}
+}
+
+\frame<1>[label=rslt]{
+	\frametitle{Computational results}
+
+	\only<1>{
+		\begin{example}
+			{\tiny
+			\begin{center}
+				\begin{tabular}{|l|c|c|c|c|}\hline
+					Tool 		& Error &  $K$  & $\mP^{K} \cdot \vigl$ & $\vpp$  \\
+					\hline
+					\prism (abs)	& $10^{-6}$ &	 2 & ($5.00025 \cdot 10^{-5}$, $2.5 \cdot 10^{-9}$, 1.0) & \multirow{4}{*}{(1.0, 1.0, 1.0)} \\
+					\prism (rel)	& $10^{-1}$ &	12 & ($5.00275 \cdot 10^{-5}$, $2.75 \cdot 10^{-8}$, 1.0) & \\
+					\etmcc		& $10^{-6}$ &	20 & ($5.00475 \cdot 10^{-5}$, $4.75 \cdot 10^{-8}$, 1.0) & \\
+					\mrmc		& $10^{-6}$ & ---	& --- & \\
+					\hline
+				\end{tabular}
+			\end{center}
+			}
+		\end{example}
+		\begin{minipage}{0.48\linewidth}
+			\begin{center}
+				\hyperlink{rslt<2>}{\includegraphics[scale=0.45, angle=0]{../../../../../experiments/26_08_2005/CSL/ssd_02/results.eps}}
+			\end{center}
+		\end{minipage} \hfill
+		\begin{minipage}{0.48\linewidth}
+			\begin{center}
+				\hyperlink{rslt<3>}{\includegraphics[scale=0.45, angle=0]{../../../../../experiments/26_08_2005/CSL/ssd_02/results_ext.eps}}
+			\end{center}
+		\end{minipage}
+	}
+
+	\only<2>{
+		\begin{figure}
+			\begin{center}
+				\hyperlink{rslt<1>}{\includegraphics[scale=0.8, angle=0]{../../../../../experiments/26_08_2005/CSL/ssd_02/results.eps}}
+			\end{center}
+			\caption{Results for formula $\PspUp{0}{0}{t}$ \label{gr:prob_2}}
+		\end{figure}
+	}
+	
+	\only<3>{
+		\begin{figure}
+			\begin{center}
+				\hyperlink{rslt<1>}{\includegraphics[scale=0.8, angle=0]{../../../../../experiments/26_08_2005/CSL/ssd_02/results_ext.eps}}
+			\end{center}
+			\caption{{\small Results for formula $\PspUp{0}{0}{t}$, extended time interval} \label{gr:prob_2}}
+		\end{figure}
+	}
+}
+
+\frame{
+	\frametitle{Workstation cluster \cite{HaverkortHK_SRDS00}}
+
+	\begin{figure}[h!]
+		\begin{center}
+			\includegraphics[scale=0.75, angle=0]{../../../../../experiments/24_10_2005/CSL/ssd_03/results.eps}
+		\end{center}
+		\vspace{-0.4cm}
+		\caption{{\small Results for $\Psf{4167}{\ppUp{true}{0}{t}{!minimum}}$}}
+	\end{figure}
+}
+
+\frame{
+	\frametitle{IEEE 802.11 protocol \cite{MassinkKL_DSN04}}
+
+	\begin{figure}[h!]
+		\begin{center}
+			\includegraphics[scale=0.7, angle=0]{../../../../../experiments/04_07_2006/CSL/WGC/results.eps}
+		\end{center}
+		\vspace{-0.4cm}
+		\caption{{\small Results for $\Psf{0}{\ppUp{true}{0}{t}{break}}$, for various \emph{OD}}}
+	\end{figure}
+}
+
+\frame{
+	\frametitle{Computation time}
+
+	\begin{figure}[h!]
+		\begin{center}
+			\includegraphics[scale=0.6, angle=0]{../../../../../experiments/30_08_2005/CSL/ssd_03/csl_bounded_until_10/results_time.eps}
+		\end{center}
+	\caption{{\small Time required to compute $\PspUp{0}{0}{t}$ probabilities}}
+	\end{figure}
+}
+
+\section{Conclusions}
+
+\frame{
+       \frametitle{Outline}
+       \tableofcontents[currentsection]
+}
+
+\frame{
+       \frametitle{Conclusions}
+	\begin{exampleblock}{Results}
+		\begin{enumerate}
+			\item The error bound corrections
+				\begin{itemize}
+					\item Steady-state detection - fixed multiple problems
+					\item The Fox-Glynn algorithm - partial error-bound refinement 
+					\item Uniformization using the Fox-Glynn - added weights influence
+				\end{itemize}
+			\item Precise steady-state detection criteria
+				\begin{itemize}
+					\item Forward computations - preserves time complexity,\\
+							computation time may slightly increase
+					\item Backward computations - preserves time complexity,\\
+							computation time may approximately double
+				\end{itemize}			
+		\end{enumerate}
+	\end{exampleblock}
+	
+	\begin{block}{\cite{KatoenZ_QEST06}}
+		For more details see our QEST'06 paper.
+	\end{block}
+}
+
+%BIBLIOGRAPHY
+% \section{Literature}
+
+% \frame{
+%        \frametitle{Outline}
+%        \tableofcontents[currentsection]
+% }
+
+%APPENDIX
+%\appendix
+
+%\AtBeginSubsection{}
+
+%\section{\appendixname}
+
+%\frame{\frametitle{Appendix Outline}\tableofcontents}
+
+%\subsection{An example}
+
+\againframe<beamer| beamer:2>{rslt}
+
+\againframe<beamer| beamer:3>{rslt}
+
+{\tiny \bibliography{../../../../BibTex/global_etmcc}}
+
+\end{document}

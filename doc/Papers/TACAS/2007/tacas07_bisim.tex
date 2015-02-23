@@ -1,0 +1,1270 @@
+
+\documentclass{llncs}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{latexsym}
+\usepackage{epsf}
+%\usepackage{psfig}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{arrows}
+\usepackage{color}
+\usepackage{ifthen}
+\usepackage{wrapfig}
+
+\input{macros}
+%\newcommand{\todo}[1]{\textbf{[\!\![\!\![~#1~]\!\!]\!\!]}}
+
+\begin{document}
+	
+	\bibliographystyle{plain}
+
+\title{Bisimulation minimisation mostly speeds up \\ probabilistic model checking}
+
+%% alternative titles:  
+%%      Bisimulation minimisation mostly in probabilistic verification
+%%              
+
+\author{Joost-Pieter Katoen$^{1,2}$, Tim Kemna$^2$, Ivan Zapreev$^{1,2}$ 
+and David N.\ Jansen$^{2,1}$}
+\institute{  
+  {$^1$ Software Modeling and Verification Group, RWTH Aachen, Germany} \\
+  {$^2$ Formal Methods and Tools, University of Twente, The Netherlands}
+}
+
+\maketitle
+%
+\begin{abstract}
+This paper studies the effect of bisimulation minimisation in model checking of 
+monolithic discrete-time and continuous-time Markov chains as well as variants 
+thereof with rewards.  Our results show that---as for traditional model checking%
+---enormous state space reductions (up to logarithmic savings) may be obtained.  
+In contrast to traditional model checking, in many cases, the verification time of
+the original Markov chain exceeds the quotienting time plus the verification time
+of the quotient.  We consider probabilistic bisimulation as well as versions thereof
+that are tailored to the property to be checked.
+\end{abstract}
+
+\section{Introduction}
+
+Probabilistic model checking  enjoys a rapid increase of interest from different communities.  
+Software tools such as PRISM \cite{HintonKNP_TACAS06} (with about 4,000 downloads),  MRMC \cite{KatoenKZ_QEST05}, and 
+LiQuor \cite{BaierCG_SIGMETRICS05} 
+support the verification of Markov chains or variants thereof that exhibit 
+nondeterminism.
+They have been applied to case studies from areas such as randomised distributed algorithms, 
+planning and AI, security, communication protocols, biological process modeling, and quantum
+computing.
+Probabilistic model checking engines have been integrated in existing tool chains for widely
+used formalisms such as stochastic Petri nets \cite{DAprileDS_DS04}, Statemate \cite{BodeHHJPPWB_QEST06}, and 
+the stochastic process algebra PEPA \cite{Hillston_96}, and are used for a probabilistic extension of 
+Promela \cite{BaierCG_SIGMETRICS05}. 
+
+The typical kind of properties that can be checked is time-bounded reachability properties---``Does
+the probability to reach a certain set of goal states (by avoiding bad states) within a maximal
+time span exceed $\frac{1}{2}$?''---and long-run averages---``In equilibrium, does the likelihood to
+leak confidential information remain below 10$^{{-}4}$?''
+Extensions for cost-based models allow for checking more involved properties that refer to e.\,g.,
+the expected cumulated cost or the instantaneous cost rate of computations. 
+Intricate combinations of numerical or simulation techniques for Markov chains, optimisation 
+algorithms, and traditional LTL or CTL model-checking algorithms result in simple, yet very
+efficient verification procedures.
+Verifying time-bounded reachability properties on models of tens of millions of states usually
+is a matter of seconds.
+
+Like in the traditional setting, probabilistic model checking suffers from state space 
+explosion: the number of states grows exponentially in the number of system
+components and cardinality of data domains.
+To combat this problem, various techniques have been proposed in the literature.
+Variants of binary decision diagrams (multi-terminal BDDs) have been
+(and still are)
+successfully
+applied in PRISM \cite{HintonKNP_TACAS06} to a range of probabilistic models,  abstraction-refinement has been 
+applied to reachability problems in MDPs~\cite{DArgenioJJL_PAPMPROBMIV01}, partial-order reduction techniques using 
+Peled's ample-set method have been generalised to MDPs \cite{GroesserB_FMCOB05}, abstract interpretation 
+has been applied to MDPs~\cite{Monniaux_SCP05}, and various bisimulation equivalences and simulation 
+pre-orders allow model aggregation prior to model checking, e.\,g., \cite{BaierKHW_IC05,Sproston_TSE06}.
+Recently proposed techniques include abstractions of probabilities by intervals 
+combined with three-valued logics for DTMCs \cite{FecherLW_SPIN06,Huth_VSS04,Huth_TCS05}, stochastic ordering
+techniques for CSL model checking \cite{MamounPY_EQST06}, abstraction of MDPs by two-player stochastic 
+games \cite{KwiatkowskaNP_QEST06}, and symmetry reduction \cite{KwiatkowskaNP_CAV06}.
+
+The purpose of this paper is to empirically investigate the effect of strong bisimulation minimisation 
+in probabilistic model checking.
+We hereby focus on fully probabilistic models such as discrete-time and continuous-time Markov 
+chains (DTMCs and CTMCs, for short), and variants thereof with costs.
+The advantages of probabilistic bisimulation \cite{LarsenS_IC91} in this setting are manifold.
+It preserves the validity of PCTL \cite{HanssonJ_FAC94} and CSL \cite{AzizSSB_ACMTCL00,BaierHHK_TSE03} formulas, variants of CTL for the discrete- and continuous-time probabilistic setting, respectively.
+It implies ordinary lumpability of Markov chains \cite{Buchholz_JAP94}, an aggregation technique for Markov chains that is applied in performance and dependability evaluation since the 1960s.
+Quotient Markov chains can be obtained in a fully automated way.
+The time complexity of quotienting is logarithmic in the number of states, and linear in the number 
+of transitions---as for  traditional bisimulation minimisation---when using splay trees (a specific kind 
+of balanced tree) for storing partitions \cite{DerisaviHS_IPL03}.
+Besides, probabilistic bisimulation can be used for obtaining (coarser) abstractions that are
+tailored to the properties of interest (as we will see), and enjoys the congruence property for
+parallel composition allowing compositional minimisation.
+We consider explicit model checking as the non-trivial interplay between bisimulation and 
+MTBDDs would unnecessarily complicate our study; such symbolic representations mostly grow
+under bisimulation minimisation~\cite{HermannsKNPS_JLAP03}. 
+
+Thanks to extensive studies by Fisler and Vardi \cite{FislerV_FMCAD98,FislerV_CHARME99,FislerV_FMSD02}, it is known that 
+bisimulation minimisation for LTL model checking and invariant verification leads to drastic state 
+space reductions (up to logarithmic savings) but at a time penalty: the time to minimise and 
+model check the resulting quotient Kripke structure significantly exceeds the time to verify 
+the original model.
+This paper considers these issues in probabilistic (i.\,e., PCTL and CSL) model checking.  
+To that end, bisimulation minimisation algorithms have been realised in the prototypical 
+explicit-state probabilistic model checker MRMC, several case studies have been considered that are
+widely studied in the literature (and can be considered as benchmark problems), and
+have been subjected to various experiments.
+This paper presents our results.
+As expected, our results show that enormous state space reductions (up to logarithmic savings) 
+may be obtained.  
+In contrast to the results by Fisler and Vardi \cite{FislerV_FMCAD98,FislerV_CHARME99,FislerV_FMSD02}, the verification time of 
+the original Markov chain mostly \emph{exceeds} the quotienting time plus the verification time of 
+the quotient.
+	This effect is stronger for probabilistic bisimulation
+	that is tailored to the property to be checked
+	and for model checking Markov chains with costs (i.\,e.\@, rewards).
+	This is due to the fact
+	that probabilistic model checking is more time-consuming
+	than traditional model checking,
+	while minimization w.\,r.\,t.\@ probabilistic bisimulation
+	is only slightly slower than for traditional bisimulation.
+
+The paper is organised as follows.
+Section~\ref{sec:basics} introduces the considered probabilistic models.
+Section~\ref{sec:bisim} considers probabilistic bisimulation and the algorithms used.
+Section~\ref{sec:exper} presents the considered case studies, the obtained results, and 
+analyses these results.
+Section~\ref{sec:concl} concludes the paper. 
+
+\section{Preliminaries}
+\label{sec:basics}
+
+\paragraph{DTMCs.}
+
+        Let $\AP$ be a fixed, finite set of \emph{atomic propositions.}
+        A (labelled) DTMC $\D$ is a tuple $(S,\TransProb,L)$
+        where $S$ is a finite set of \emph{states,}
+        $\TransProb: S \times S \to [0,1]$ is a \emph{probability matrix}
+        such that $\sum_{s' \in S} \TransProb(s,s') = 1$ for all $s \in S$,
+        and $L : S \to 2^\mathit{AP}$ is a \emph{labelling} function
+        which assigns to each state $s \in S$
+        the set $L(s)$ of atomic propositions that hold in $s$.
+        A path through a DTMC is a sequence\footnote{In
+                this paper, we do not dwell upon the distinction between finite and infinite paths.}
+        of states $\sigma = s_0 \, s_1 \, s_2 \ldots$
+        with $\TransProb(s_i,s_{i{+}1}) > 0$ for all $i$.
+        Let $\Path^\D$ denote the set of all paths in DTMC $\D$.
+        $\sigma[i]$ denotes the $(i{+}1)$th state of $\sigma$,
+        i.\,e.\@, $\sigma[i] = s_i$.
+%       Let $\mathrm{Pr}_s$ denote the unique probability measure on sets of paths
+%       that start in state $s$ \cite{...}.
+
+\paragraph{The logic PCTL.}
+
+        Let $a \in \AP$,
+        probability $p \in [0,1]$,
+        $k \in \mathbb{N}$ (or $k = \infty$)
+        and $\bowtie$ be either $\leq$ or $\geq$.
+        The syntax of Probabilistic CTL (PCTL) \cite{HanssonJ_FAC94} is defined by:
+	\vspace{-1pt}
+        \[ \Phi ::= \true \ \ \Big|  \ \ a \ \ \Big| 
+              \ \ \Phi \, \wedge \, \Phi  \ \ \Big| 
+              \ \ \neg \, \Phi \ \ \Big| 
+              \ \ \mathcal{P}_{\bowtie \, p}(\Phi \rU{\leq k} \Phi) .
+        \]
+	\vspace{-1pt}
+        A state $s$ satisfies $\mathcal{P}_{\bowtie \, p}(\Phi \rU{\leq k} \Psi)$
+        if $\set{ \sigma \in \Path^\D(s) \mid \sigma \models \Phi \rU{\leq k} \Psi}$ 
+        has a probability that satisfies $\bowtie \, p$.
+        A path $\sigma$ satisfies $\Phi \rU{\leq k} \Psi$
+        if within $k$ steps a $\Psi$-state is reached,
+        and all preceding states satisfy $\Phi$.
+        That is, if $\sigma[j] \models \Psi$ for some $j \leq k$,
+        and $\sigma[i] \models \Phi$ for all $i < j$.
+	We define the abbreviation $\Diamond^{\leq k} \Phi := \true \rU{\leq k} \Phi$.
+        The unbounded until formula that is standard in temporal logics
+        is obtained by taking $k = \infty$,
+        i.\,e.\@, $\Phi \U \Psi = \Phi \rU{\leq \infty} \Psi$.\footnote{For
+                simplicity, we do not consider the next operator.}
+
+        Given a set $F$ of PCTL formulas,
+        we denote with PCTL$_F$ the smallest set of formulas
+        that contains $F$ and is closed under the PCTL operators $\wedge$, $\neg$, and $\mathcal{U}$.
+
+\paragraph{Verifying hop-constrained probabilistic reachability.}
+
+        PCTL model checking~\cite{HanssonJ_FAC94} is carried out in the same way
+        as verifying CTL
+        by recursively computing the set $\Sat(\Phi) = \set{s \in S \mid s \models \Phi}$.
+        The probability of $\set{ \sigma \mid \sigma \models \Phi \rU{\leq k} \Psi}$
+%       (needed for $\mathcal{P}_{\bowtie \, p}(\Phi \rU{\leq k} \Psi)$)
+        is the least solution of the following linear equation system.
+        Let
+        $S_1 = \set{s \mid s \models \Psi}$,
+        $S_0 = \set{s \mid s \models \neg \Phi \wedge \neg \Psi}$,
+        and $S_? = \set{s \mid s \models \Phi \wedge \neg \Psi} = S \setminus (S_1 \cup S_0)$.
+        \begin{equation*}\label{buntil}
+                \mathit{Prob}^\D(s, \Phi \rU{\leq k} \Psi) = \begin{cases}
+                1       & \text{if } s \in S_1 \\
+                \sum\limits_{s' \in S} \TransProb(s,s') \cdot \mathit{Prob}^\D(s',\Phi \rU{\leq {k{-}1}} \Psi)
+                        & \text{if } s \in S_? \wedge k>0 \\
+                0       & \text{otherwise} \end{cases}
+        \end{equation*}
+        One can simplify this system by replacing $S_0$ by
+        $U_0 = S_0 \cup \set{ s \in S_? \mid \neg\exists \sigma \in \Path^\D(s): \sigma \models \Phi \U \Psi}$.
+        If $k = \infty$, one may also replace $S_1$ by
+        $U_1 = S_1 \cup \set{ s \in S_? \mid \forall \sigma \in \Path^\D(s): \sigma \models \Phi \U \Psi}$.
+        The sets $U_0$ and $U_1$ can be found via a simple graph analysis (a depth-first search)
+        in time $O(|S|{+}|\TransProb|)$.
+%       This probability can be computed directly by solving the linear equation system
+%       % by standard means such as Gaussian elimination
+%       or can be approximated by an iteration\footnote{The
+%               function $s \mapsto {\mathit Prob}^\D(s, \Phi \U^{\leq k} \Psi)$ is the least fixpoint
+%               of a higher-order function in $(S \to [0,1]) \to (S \to [0,1])$
+%               where the underlying partial order on $S \to [0,1]$ is defined pointwise.}.
+%       \todo{I think that approximation is only necessary if $k=\infty$?}
+
+	Alternatively, the probabilities can be calculated
+        by making the states $s \not\in S_?$ absorbing as follows.
+        For DTMC $\D = (S,\TransProb,L)$ and $A \subseteq S$,
+        let $\D[A]$ be the DTMC $(S,\TransProb[A],L)$
+        where the states in $A$ are made absorbing:
+        If $s \in A$, then $\TransProb[A](s,s) = 1$
+        and $\TransProb[A](s,s') = 0$ for $s' \neq s$.
+        Otherwise, $\TransProb[A](s,s') = \TransProb(s,s')$.
+%       We have $\D[A][B] = \D[A \cup B]$.
+        Let $\pi^\D(s \overset{k}{\rightsquigarrow} s')$
+        denote the probability of being in state $s'$ after exactly $k$ steps in DTMC $\D$
+        when starting in $s$.
+%       This is known as the transient probability of state $s'$ after $k$ steps
+%       and can be obtained by $(\alpha_s{\cdot}\TransProb^k)(s')$
+%       where $\alpha_s$ is a probability vector that is one in state $s$, and 0 otherwise.
+        Then:
+        \begin{equation*}\label{A}
+                \mathit{Prob}^\D(s,\Phi \rU{\leq k} \Psi) =
+                \sum_{s' \in S_1} \ \pi^{\D[S_0 \cup S_1]}(s \overset{k}{\rightsquigarrow} s') .
+        \end{equation*}
+%       Note that $\D[\neg \Phi \vee \Psi] = \D[\neg(\Phi \wedge \Psi)][\Psi]$,
+%       i.\,e.\@, all $\neg(\Phi \vee \Psi)$-states and all $\Psi$-states in $\D$ are made absorbing.
+%       That is, the only transitions available in these states
+%       are self-loops with probability one.
+%       The former is correct since $\Phi \rU{\leq k} \Psi$ is violated
+%       as soon as some state is visited that neither satisfies $\Phi$ nor $\Psi$.
+%       The latter is correct since, once a $\Psi$-state in $\D$ has been reached
+%       (along a $\Phi$-path) in at most $k$ steps,
+%       then $\Phi \rU{\leq k} \Psi$ holds,
+%       regardless of which states will be visited later on.
+        Calculating $\mathit{Prob}^\D(s,\Phi \rU{\leq k} \Psi)$
+        thus amounts to computing $(\TransProb[S_0 \cup S_1])^k{\cdot}\vt{\iota_{S_1}}$,
+        where $\vt{\iota_{S_1}}(s) = 1$ if $s \in S_1$, and 0 otherwise.
+%       As iterative squaring is not attractive for stochastic matrices due to fill in~\cite{Stew94},
+%       the product is typically computed in an iterative fashion:
+%       $\TransProb{\cdot}( \ldots ( \TransProb{\cdot}\vt{\iota}_\Psi ))$.
+
+\paragraph{CTMCs.}
+
+        A (labelled) CTMC $\M$ is a tuple $(S,\TransProb,E,L)$
+        where $(S,\TransProb,L)$ is a DTMC
+        and $E: S \to \mathbb{R}_{\geq 0}$ provides the \emph{exit rate} for each state.
+        The probability of taking a transition from $s$ within $t$ time units 
+        equals $1-e^{{-}E(s) \cdot t}$.
+        The probability of taking a transition from state $s$ to state $s'$
+        within time $t$ is given by: $\TransProb(s,s') \cdot(1-e^{{-}E(s) \cdot t})$.
+
+	A path through a CTMC is a sequence of states and sojourn times
+	$\sigma = s_0 \, t_0 \, s_1 \, t_1 \ldots$
+	with $\TransProb(s_i,s_{i+1})>0$ and $t_i \in \mathbb{R}_{\geq 0}$ for all $i$.
+	Let $\Path^\M$ denote the set of all paths in CTMC $\M$.
+
+\paragraph{Uniformisation.}
+        In a \emph{uniform} CTMC, the exit rate of all states is the same.
+        A non-uniform CTMC can be uniformized by adding self loops as follows:
+        let $\M = (S,\TransProb,E,L)$ be a CTMC
+        and choose $\tilde{E} \geq \max_{s \in S} E(s)$.
+        Then, $\mathit{Unif}_{\tilde{E}}(\M) = (S,\TransProb',E',L)$
+        where $E'(s) = \tilde{E}$ for all $s$,
+        $\TransProb'(s,s') = E(s) \TransProb(s,s') / \tilde{E}$ if $s \not= s'$
+        and $\TransProb'(s,s) = 1 - \sum_{s' \not= s} \TransProb'(s,s')$.
+%       = [\tilde{E} - E(s)(1 - \TransProb(s,s))] / \tilde{E}$.
+        The probability to be in a given state at a given time in the uniformized CTMC
+	is the same as the one in the original CTMC.
+
+\paragraph{The logic CSL.}
+
+        Continuous stochastic logic (CSL, \cite{BaierHHK_TSE03}) is similar to PCTL.
+        For $a$, $p$ and $\bowtie$ as before, time bounds $t_1 \in [0, \infty)$ and $t_2 \in [t_1, \infty]$,
+        the syntax is:
+        \[ \Phi ::= \true \ \ \Big|  \ \ a \ \ \Big| 
+              \ \ \Phi \, \wedge \, \Phi  \ \ \Big| 
+              \ \ \neg \, \Phi \ \ \Big| 
+              \ \ \mathcal{P}_{\bowtie \, p}(\Phi \rU{[t_1, t_2]} \Phi)
+                \ \ \Big|
+                \ \ \mathcal{S}_{\bowtie \, p}(\Phi)
+        \]
+        A state $s$ satisfies $\mathcal{P}_{\bowtie \, p}(\Phi \rU{[t_1, t_2]} \Psi)$
+        if the set of timed paths $\set{ \sigma \in \Path^\M(s) \mid \sigma \models \Phi \rU{[t_1, t_2]} \Psi }$
+        has a probability $\bowtie \, p$.
+        A timed path
+        %$s_0 t_0 \, s_1 t_1 \, s_2 t_2 \ldots$
+        satisfies $\Phi \rU{[t_1, t_2]} \Psi$
+        if within time $t \in [t_1, t_2]$ a $\Psi$-state is reached,
+        and all preceding states satisfy $\Phi$.
+        We will mostly let $t_1=0$
+        and denote this as $\Phi \rU{\leq t_2} \Psi$.
+        A state $s$ satisfies the formula $\mathcal{S}_{\bowtie \, p}(\Phi)$
+        if the steady-state probability
+        to be in a $\Phi$-state (when starting in $s$)
+        satisfies the constraint $\bowtie \, p$.
+
+        CSL model checking \cite{AzizSSB_ACMTCL00,BaierHHK_TSE03} can be implemented as follows.
+        The operator $\mathcal{S}$ can be solved by a (standard) calculation of the steady-state 
+        probabilities together with a graph analysis.
+        For the time-bounded until operator, note that,
+        after uniformisation the probability to take $k$ steps within time $t$
+        does not depend on the actual states visited.
+        This probability is Poisson distributed,
+        and the probability to satisfy the until formula within $k$ steps
+        is calculated using the PCTL algorithm.
+        The total probability is an infinite sum over all $k$, which can be approximated well.
+
+\paragraph{Rewards.}
+A discrete-time Markov reward model (DMRM) $\D_\rew$ is a tuple $(\D, \rew)$ where 
+$\D$ is a DTMC and $\rew: S \to \mathbb{R}_{\geq 0}$ is a \emph{reward} assignment
+function.
+The quantity $\rew(s)$ indicates the reward that is earned on leaving state $s$.
+Rewards could also be attached to edges in a DTMC, but this does not
+increase expressivity.
+A path through a DMRM is a path through its DTMC, i.\,e., sequence of states $\sigma = 
+s_0 \, s_1 \, s_2 \ldots$ with $\TransProb(s_i,s_{i{+}1}) > 0$ for all $i$.
+
+        Let $a$, $p$ and $k$ be as before,
+        and $r \in \mathbb{R}_{\geq 0}$ be a nonnegative reward bound.
+        The two main operators that extend PCTL to Probabilistic Reward CTL (PRCTL) \cite{AndovaHK_FORMATS03} 
+        are $\mathcal{P}_{\bowtie \, p}(\Phi \mathrel{\U^{\leq k}_{\leq r}} \Psi)$ and
+          $\mathcal{E}^{{=}k}_{\leq r}(\Phi)$.
+        The until-operator is equipped with a bound
+        on the maximum number ($k$) of allowed hops to reach the goal states,
+        and a bound on the maximum allowed cumulated reward ($r$)
+        before reaching these states.
+Formula $\mathcal{E}^{{=}k}_{\leq r}(\Phi)$ asserts that the expected cumulated 
+reward in $\Phi$-states until the $k$-th transition is at most $r$.
+Thus, in order to check the validity of this formula for a given path, all visits to
+$\Phi$-state are considered in the first $k$ steps and the total reward that is 
+obtained in these states;
+        the rewards earned in other states
+        or earned in $\Phi$-states after the first $k$ steps
+        are not relevant.
+Whenever the expected value of this quantity over all paths that start in state 
+$s$ is at most $r$, state $s \models \mathcal{E}^{{=}k}_{\leq r}(\Phi)$.
+
+A continuous-time Markov reward model (CMRM) $\M_\rew$ is a tuple $(\M, \rew)$ 
+where $\M$ is a CTMC and $\rew: S \to \mathbb{R}_{\geq 0}$ is a reward assignment
+function (as before).
+The quantity $\rew(s)$ indicates that if $t$ time units are spent in state $s$, a reward 
+$\rew(s)\cdot t$ is acquired.
+A path through a CMRM is a path through its underlying CTMC.
+Let $\sigma = s_0 \, t_0 \, s_1 \, t_1 \ldots$ be a path. 
+For $t = \sum_{j{=}0}^{k{-}1} t_j + t'$ with $t' \leq t_k$ we define 
+$\rew(\sigma,t) = \sum_{j{=}0}^{k{-}1} t_j \cdot \rew(s_j) + t' \cdot \rew(s_k)$, 
+the cumulative reward along $\sigma$ up to time $t$.
+
+	CSRL \cite{BaierHHK_ICALP00} is a logic that extends CSL with one operator
+	$\mathcal{P}_{\bowtie\, p}(\Phi \mathrel{\U^{\leq t}_{\leq r}} \Psi)$
+	to express time- and reward-bounded properties.
+	Checking this property of a CMRM is difficult.
+        One can either approximate the CMRM by a discretisation of the rewards
+        or compute for each (untimed) path the probability to meet the bound
+        and sum them up.
+        Reward-bounded until properties of a CMRM can be checked via a transformation
+        of rewards into exit rates and checking a corresponding time-bounded until property
+        \cite{BaierHHK_ICALP00}.
+
+\section{Bisimulation}
+\label{sec:bisim}
+
+\paragraph{Bisimulation.}
+        Let $\D = (S,\TransProb,L)$ be a DTMC and $R$ an equivalence relation on $S$.
+        The quotient of $S$ under $R$ is denoted $S/R$.
+        $R$ is a \emph{strong bisimulation} on $\D$ if for $s_1 \mathrel{R} s_2$: 
+        \[
+                L(s_1) = L(s_2) \quad \mbox{ and } \quad \TransProb(s_1,C) = 
+                \TransProb(s_2,C) \mbox{ for all } C \mbox{ in } S/R.
+        \]
+        $s_1$ and $s_2$ in $\D$ are strongly bisimilar, denoted $s_1 
+        \sim_d s_2$, if there exists a strong bisimulation $R$ on $\D$ with 
+        $s_{1} \mathrel{R} s_{2}$.
+        Strong bisimulation~\cite{Buchholz_JAP94,Hillston_96} for CTMCs,
+        that implies ordinary lumpability,
+        is a mild variant of the notion for the discrete-time probabilistic setting:
+        in addition to the above, it is also required
+        that the exit rates of bisimilar states are equal:
+        $E(s_1) = E(s_2)$.
+
+\paragraph{Measure-driven bisimulation.}
+        Requiring states to be equally labelled with all atomic propositions is rather
+        strong if one is interested in checking formulas that just refer to a (small)
+        subset of propositions, or more generally, sub-formulas.
+        The following notion weakens the labelling requirement in strong bisimulation 
+        by requiring equal labellling for a set of PCTL formulas $F$.
+        Let $\D = (S,\TransProb,L)$ be a DTMC
+        and $R$ an equivalence relation on $S$.
+        $R$ is a \emph{$F$-bisimulation} on $\D$ if for $s_1 \mathrel{R} s_2$:
+        \[
+                s_1 \models \Phi \Longleftrightarrow s_2 \models \Phi
+                \text{ for all } \Phi \in F
+                \quad \text{ and } \quad
+                \TransProb(s_1, C) = \TransProb(s_2, C)
+                \text{ for all } C \in S/R.
+        \]
+        States $s_1$ and $s_2$ are $F$-bisimilar, denoted $s_1 \mathrel{\sim_F} s_2$,
+        if there exists an $F$-bisimulation $R$ on $\D$ with $s_1 \mathrel{R} s_2$.
+        $F$-bisimulation on CTMCs (for a set of CSL formulas $F$) is defined analogously
+        \cite{BaierHHK_ICALP00}.
+        Note that strong bisimilarity is $F$-bisimilarity for $F = \AP$.
+
+\paragraph{Preservation results.}
+        Aziz \emph{et al.} \cite{AzizSSBSV_CAV95} have shown that strong bisimulation is sound and complete 
+        with respect to PCTL (and even PCTL$^*$):
+        \begin{proposition}
+                Let $\D$ be a DTMC, $R$ a bisimulation
+                and $s$ an arbitrary state of $\D$.
+                Then, for all PCTL formulas $\Phi$,
+                $s \models_\D \Phi \Longleftrightarrow [s]_R \models_{\D/R} \Phi$.
+        \end{proposition}
+        This result can be generalised to $F$-bisimulation in the following way:
+        \begin{proposition} \label{prop.f.bisim}
+                Let $\D$ be a DTMC, $R$ an $F$-bisimulation
+                and $s$ an arbitrary state of $\D$.
+                Then, for all PCTL$_F$ formulas $\Phi$,
+                $s \models_\D \Phi \Longleftrightarrow [s]_R \models_{\D/R} \Phi$.
+        \end{proposition}
+        Similar results hold for CSL and bisimulation on CTMCs \cite{BaierHHK_TSE03},
+        for PRCTL on DMRM, and for CSRL on CMRM.
+        
+%       \todo{is it somewhere explained what is PCTL$_F$?}
+%       Yes, just below the definition of PCTL.
+
+\paragraph{Bisimulation minimisation.}
+        The preservation results suggest that one can verify properties of a Markov chain
+        on a bisimulation quotient.
+        The next issue to consider is how to obtain the quotient.
+        An often used algorithm (called \emph{partition refinement}) is based on \emph{splitting:}
+        Let $\Pi$ be a partition of $S$.
+%       (The initial partition is constructed from the state labelling.)
+        A splitter for some block $B \in \Pi$ is a block $Sp \in \Pi$
+        such that the probability to enter $Sp$ is not the same for each state in $B$.
+        In this case, the algorithm splits $B$ into subblocks
+        such that each subblock consists of states $s$ with identical $\TransProb(s,Sp)$.
+        This step is repeated until a fixpoint is reached.
+        The final partition is the coarsest bisimulation that respects the initial partition.
+        The worst-case time complexity of this algorithm is $O(|\TransProb| \log |S|)$ provided
+        that splay trees are used to store blocks \cite{DerisaviHS_IPL03}.
+        These data structures are adopted in our implementation.\footnote{
+                In practice, an implementation using red-black trees is often slightly faster,
+                although this raises the theoretical complexity to 
+                $O(|\TransProb| \log^2 |S|)$, cf.\@ \cite[Section~3.4]{Derisavi_PhD05}.}
+
+\paragraph{Initial partition.}
+        The choice of initial partition in the partition refinement algorithm
+        determines what kind of bisimulation the result is.
+        If we group states labelled with the same atomic propositions together,
+%       (this can be done in time $O(|S|{\cdot}|\AP|)$),
+        the result is the strong bisimulation quotient $S/\mathord{\sim}_d$.
+        If we choose the initial partition according to the satisfaction of formulas in $F$,
+%       (based on earlier model checking steps),
+        the resulting partition is the $F$-bisimulation quotient $S/\mathord{\sim}_F$.
+        To get the smallest bisimulation quotient,
+        it is important to start with a coarse initial partition.
+        Instead of only calculating the strong bisimulation quotient,
+        we will also use measure-driven bisimulation for a suitable set $F$.
+
+        A naive approach for formula $\mathcal{P}_{\bowtie \, p}(\Phi \U \Psi)$
+        is to choose $F = \set{ \Psi, \Phi \wedge \neg \Psi }$.
+        In fact, $\mathcal{P}_{\bowtie \, p}(\Phi \U \Psi)$ is not in PCTL$_F$, but the equivalent
+        formula $\mathcal{P}_{\bowtie \, p}(\Phi \wedge \neg \Psi \U \Psi)$ is.
+        This yields an initial partition consisting of the sets $S_1 = \Sat(\Psi)$, $S_? = \Sat(\Phi
+        \wedge \neg \Psi)$ and $S_0 = S \setminus (S_1 \cup S_?)$
+	(cf.\@ Section~\ref{sec:basics}).
+	Note that selecting $F = \set{ \Psi, \Phi }$
+	would lead to a less efficient initial partition
+	with four blocks instead of three.
+%       The sets $S_1$ and $S_0$ may be collapsed into a single state each.
+        We improve this initial partition by replacing $S_0$
+        by $U_0 = \Sat(\mathcal{P}_{\leq 0}(\Phi \U \Psi))$
+        and $S_1$ by $U_1$,
+        which is essentially\footnote{
+                Up to states $s$ where the set
+                $\set{ \sigma \in \Path^\D(s) \mid \sigma \not\models \Phi \U \Psi }$
+                is only almost empty.
+%               Then, $s \not\in U_1$.
+%
+%               Note that $U_0$ is actually, not only almost $= \Sat{\mathcal{P}_{\leq 0}(\Phi \U \Psi)$
+%               because if $\sigma \models \Phi \U \Psi$,
+%               then a finite initial fragment of $\sigma$ also satisfies $\Phi \U \Psi$,
+%               and the set of paths with this initial fragment has measure $> 0$.
+                }
+        $\Sat(\mathcal{P}_{\geq 1}(\Phi \U \Psi))$.
+%	This corresponds to $F = \set{ \mathcal{P}_{\leq 0}(\Phi \U \Psi), \mathcal{P}_{\geq 1}(\Phi \U \Psi)}$,
+%	and we check the scary-looking but still equivalent formula
+%	$\mathcal{P}_{\bowtie \, p}(\neg \mathcal{P}_{\leq 0}(\Phi \U \Psi) \U \mathcal{P}_{\geq 1}(\Phi \U \Psi))$.
+	(Defining $U_0$ and $U_1$ as satisfaction sets of some formula has the advantage
+	that we can still use Proposition~\ref{prop.f.bisim}.)
+        The sets of states $U_0$ and $U_1$
+        can be collapsed into single states $u_0$ and $u_1$, respectively.
+        This results in the initial partition $\set{ \{u_0\}, \{u_1\}, S \setminus (U_0 \cup U_1)}$.
+
+        For bounded until, one can still use $U_0$, but not $U_1$,
+        since the fact that (almost) all paths satisfy $\Phi \U \Psi$
+        does not imply that these paths reach a $\Psi$-state within the step or time bound.
+        Therefore, for this operator the initial partition is $\set{ \{u_0\}, \{s_1\}, S \setminus (U_0 \cup S_1)}$
+        with $u_0$ as before and $s_1$ the collapsed state for $S_1$.\footnote{
+                For the sake of brevity,
+                we omit the details for the optimal initial partition for time-bounded until-formulas
+                of the form $\rU{[t_1,t_2]}$ with $0 < t_1$.
+                }
+        Thus, for bounded until the measure-driven initial partition is finer than for unbounded until.
+        In the experiments reported in the next section, the effect of the granularity of the initial
+        partition will become clear.
+
+\section{Experiments}
+\label{sec:exper}
+
+To study the effect of bisimulation in model checking,
+we realised the minimisation algorithms in MRMC
+and applied them to a variety of case studies, most of which  
+can be obtained from the PRISM webpage.\footnote{see {\tt http://www.cs.bham.ac.uk/dxp/prism/index.php}.}
+We used PRISM to specify the models and generate the Markov chains.
+Subsequently, the time and memory requirements have been considered for verifying
+the chains (by MRMC), and for minimising plus verifying the lumped chain (both by 
+MRMC). 
+All experiments were conducted on a 2.66~GHz Pentium~4 processor with 1~GB RAM running 
+Linux.
+All reported times are in milliseconds and are obtained by taking the average of running 
+the experiment 10 times.
+
+\subsection{Discrete time}
+
+\paragraph{Crowds protocol \cite{ReiterR_ACMTISS98}.}
+This protocol uses random routing within a group of nodes (a crowd) to establish a 
+connection path between a sender and a receiver.  
+Routing paths are reconstructed once the crowd changes; the number of such new route
+establishments is $R$, and is an important parameter that
+influences the state space.
+Random routing serves to hide the secret identity of a sender.
+The table below summarises the results for checking $\Prob{\leq}{p}{\Diamond \mbox{\sl 
+observe}}$ where {\sl observe} characterises a situation in which the sender's id is
+detected.
+The parameter $N$ in the first column is the number of honest crowd members;
+our models include $N/5$ dishonest members.
+The second column shows parameter $R$.
+The next three columns indicate the size of the state space of the DTMC (i.\,e., $|S|$),
+the number of transitions (i.\,e., the number of non-zero entries in $\TransProb$), and the 
+verification time.
+The next three columns indicate the number of states in the quotient DTMC, the time needed
+for obtaining this quotient, and the time to check the validity of the same formula on
+the quotient.
+The last two columns indicate the reduction factor for the number of states and total time.
+Note that we obtain large state space reductions.  
+Interestingly, in terms of time consumption, quotienting obtains a reduction in time of
+about a factor 4 to 7.
+
+{\scriptsize
+\begin{center}
+\begin{tabular}{|c|c|r|r|r|r|r|r|r|r|}
+\hline 
+%% \hline
+%% \multicolumn{10}{|c|}{\emph{Reiter and Rubin's Crowds protocol}} \\ 
+%% \hline \hline
+\multicolumn{2}{|c}{} & \multicolumn{3}{c|}{original DTMC} & \multicolumn{3}{c|}{lumped DTMC} 
+  & \multicolumn{2}{c|}{red.\ factor} \\[1ex] \hline 
+     $N$    &$R$& \multicolumn{1}{c|}{states} &transitions& ver.\ time    &blocks& lump time     &ver.\ time& \multicolumn{1}{c|}{states} & time \\ \hline
+\phantom{0}5& 3 &    1198 &    2038 &     3.2          &  53 &    0.6          & 0.3 &   22.6          & 3.7 \\
+\phantom{0}5& 4 &    3515 &    6035 &    11\phantom{.0}&  97 &    2.0          & 0.5 &   36.2          & 4.4 \\
+\phantom{0}5& 5 &    8653 &   14953 &    48\phantom{.0}& 153 &    6.0          & 0.9 &   56.6          & 6.9 \\
+\phantom{0}5& 6 &   18817 &   32677 &   139\phantom{.0}& 209 &   14\phantom{.0}& 1.4 &   90.0          & 9.0 \\ \hline 
+% ----------------------------------------------------------------
+         10 & 3 &    6563 &   15143 &    24\phantom{.0}&  53 &    4.6          & 0.2 &  124\phantom{.0}& 4.9 \\
+         10 & 4 &   30070 &   70110 &   190\phantom{.0}&  97 &   29\phantom{.0}& 0.5 &  310\phantom{.0}& 6.4 \\
+         10 & 5 &  111294 &  261444 &   780\phantom{.0}& 153 &  127\phantom{.0}& 0.9 &  727\phantom{.0}& 6.1 \\
+         10 & 6 &  352535 &  833015 &  2640\phantom{.0}& 221 &  400\phantom{.0}& 1.4 & 1595\phantom{.0}& 6.6 \\ \hline 
+% --------------------------------------------------------------------------------------
+         15 & 3 &   19228 &   55948 &   102\phantom{.0}&  53 &   23\phantom{.0}& 0.2 &   363\phantom{.0}& 4.4 \\
+         15 & 4 &  119800 &  352260 &   790\phantom{.0}&  97 &  190\phantom{.0}& 0.5 &  1235\phantom{.0}& 4.1 \\
+         15 & 5 &  592060 & 1754860 &  4670\phantom{.0}& 153 & 1020\phantom{.0}& 0.9 &  3870\phantom{.0}& 4.6 \\
+         15 & 6 & 2464168 & 7347928 & 20600\phantom{.0}& 221 & 4180\phantom{.0}& 1.5 & 11150\phantom{.0}& 4.9 \\ \hline 
+\end{tabular}
+\end{center}
+}
+
+\paragraph{Leader election \cite{ItaiR_IC90}.}
+In this protocol, $N$ nodes that are arranged in an unidirectional ring select
+an identity randomly according to a uniform distribution on $\set{1, \ldots, K}$.
+By means of synchronous message passing, processes send their identity around
+the ring.  The protocol terminates once a node has selected a unique id (the 
+node with the highest unique id becomes the leader); if no such node exists, the 
+protocol restarts.
+The property of interest is the probability to elect a leader
+within a certain number of rounds: $\Prob{\leq}{q}{\Diamond^{\leq (N{+}1){\cdot}3} \, 
+\mbox{\sl leader elected}}$.
+The obtained results are summarised in the table below.
+For a fixed $N$, the number of blocks is constant.
+This is due to the fact that the initial state is the only probabilistic state 
+and that almost all states that are equidistant w.\,r.\,t.\ this initial state are bisimilar.
+For $N = 4$, no gain in computation time is obtained due to the relatively 
+low number of iterations needed in the original DTMC.
+When $N$ increases, bisimulation minimisation also pays off timewise; in this
+case a small reduction of the time is obtained (more iterations are needed
+due to the bound in the until-formula that depends on $N$). 
+
+{\scriptsize
+\begin{center}
+\begin{tabular}{|c|r|r|r|r|r|r|r|r|r|}
+\hline 
+%% \hline
+%% \multicolumn{10}{|c|}{\emph{Itai and Rodeh's synchronized leader election protocol}} \\ 
+%% \hline \hline
+\multicolumn{2}{|c}{} & \multicolumn{3}{c|}{original DTMC} & \multicolumn{3}{c|}{lumped DTMC} 
+  & \multicolumn{2}{c|}{red.\ factor} \\[1ex] \hline 
+$N$&$K$& \multicolumn{1}{c|}{states}&transitions& ver.\ time   &blocks& lump time   &ver.\ time& \multicolumn{1}{c|}{states} &time \\ \hline
+4 &  2 &     55 &     70 &   0.02          & 10 &   0.05          & 0.01 &     5.5          & 0.4 \\
+4 &  4 &    782 &   1037 &   0.4\phantom{0}& 10 &   0.5\phantom{0}& 0.01 &    78.2          & 0.8 \\
+4 &  8 &  12302 &  16397 &   7.0\phantom{0}& 10 &   9.0\phantom{0}& 0.01 &  1230\phantom{.0}& 0.8 \\
+4 & 16 & 196622 & 262157 & 165.0\phantom{0}& 10 & 175\phantom{.00}& 0.01 & 19662\phantom{.0}& 0.9 \\ \hline 
+5 &  2 &    162 &    193 &   0.1\phantom{0}& 12 &   0.1\phantom{0}& 0.02 &    13.5          & 0.9 \\
+5 &  4 &   5122 &   6145 &   2.8\phantom{0}& 12 &   2.9\phantom{0}& 0.02 &   427\phantom{.0}& 0.9 \\
+5 &  6 &  38882 &  46657 &  28\phantom{.00}& 12 &  26\phantom{.00}& 0.02 &  3240\phantom{.0}& 1.1 \\
+5 &  8 & 163842 & 196609 & 140\phantom{.00}& 12 & 115\phantom{.00}& 0.02 & 13653\phantom{.0}& 1.2 \\ \hline 
+\end{tabular}
+\end{center}
+}
+
+\paragraph{Cyclic polling server \cite{IbeT_SAC90}.}
+This standard example in performance analysis considers a set of stations that
+are allowed to process a job once they possess the token.
+The single token circulates among the stations.
+The times for passing a token to a station and for serving a job are all distributed 
+exponentially.
+We consider the DTMC that is obtained after uniformisation, and check the
+formula: $\Prob{\bowtie}{p}{\bigwedge_{j \neq 1}^N \neg \mbox{\sl serve}_j \U \mbox{\sl serve}_1}$, 
+i.\,e.\@ with probability $\bowtie p$ station 1 will be served before any other 
+station, as well as a time-bounded version thereof.\footnote{For the sake of
+comparison, the unbounded until-formula is checked on the uniformised
+and not on the embedded DTMC.}
+Ordinary (strong) bisimulation yields no state-space reduction.
+The results for measure-driven bisimulation minimisation are summarised
+below.
+In checking the bounded until formula, we used the naive initial partition 
+$\set{ \{s_0\}, \{s_1\}, S_? }$. 
+The improved initial partition with $\{u_0\}$ would have led to almost the same 
+number of blocks as the unbounded until, e.\,g. 46 instead of 151 blocks for $N=15$.
+For both formulas, large reductions in state space size as well as computation 
+time are obtained; the effect of $\{u_0\}$ on the number of blocks is also considerable.
+
+{\scriptsize
+\begin{center}
+\begin{tabular}{|c|r|r|r|r|r|r|r|r|r|r|r|r|}
+\hline 
+%% \hline
+%% \multicolumn{11}{|c|}{\emph{Trivedi and Ibe's cyclic polling protocol}}\ 
+%% \hline \hline
+  \multicolumn{5}{|c|}{} & \multicolumn{4}{c|}{time-bounded until}
+  & \multicolumn{4}{c|}{unbounded until} \\ \hline
+  \multicolumn{5}{|c|}{original DTMC} & \multicolumn{2}{c|}{lumped DTMC}  
+  & \multicolumn{2}{c|}{red.\ factor}  & \multicolumn{2}{c|}{lumped DTMC}  
+  & \multicolumn{2}{c|}{red.\ factor}\\[1ex] \hline 
+$N$& \multicolumn{1}{c|}{states} &transitions&time $\U^{\leq t}$& \multicolumn{1}{c|}{time $\U$} & blocks & \multicolumn{1}{c|}{time} & states & time 
+  & blocks & time & states & time \\ \hline
+ 4&    96&    368&    1.4          &   2.1           &  19&   0.4          &   5.1          & 3.5&12&  0.9          &    8& 2.3 \\
+ 6&   576&   2784&   10\phantom{.0}&   11\phantom{.0}&  34&   1.2          &  16.9          & 8.3&18&  1.4          &   32& 7.9 \\
+ 8&  3072&  17920&   62\phantom{.0}&   52\phantom{.0}&  53&   4.0          &  58\phantom{.0}&15.5&24&  2.9          &  128&17.9  \\
+12& 73728& 577536& 3050\phantom{.0}&  3460\phantom{.0} &103 & 120\phantom{.0}& 716\phantom{.0}&25.4&36& 55\phantom{.0}& 2048&62.9  \\
+15&737280&6881280&39000\phantom{.0}&32100\phantom{.0}& 151&1590\phantom{.0}&4883\phantom{.0}&24.5&45&580\phantom{.0}&16384&55.3 \\ \hline
+\end{tabular}
+\end{center}
+}
+
+\paragraph{Randomised mutual exclusion \cite{PnueliZ_DC86}.}
+%
+In this mutual exclusion algorithm, $N$ processes make random choices based on coin tosses 
+to ensure that they can all enter their critical sections eventually, although not simultaneously.
+The following table summarizes our results for verifying the property that process~1
+is the first to enter the critical section, i.\,e., the PCTL formula $\Prob{\leq}{q}{\bigwedge_{j \neq 1}^N
+\neg \mbox{\sl enter}_j \U \mbox{\sl  enter}_1}$.
+
+{\scriptsize
+\begin{center}
+\begin{tabular}{|c|r|r|r|r|r|r|r|r|r|r|r|r|r|}
+\hline 
+%% \hline
+%% \multicolumn{12}{|c|}{\emph{Pnueli and Zuck's randomized mutual exclusion protocol}} \\ \hline
+   & \multicolumn{3}{c|}{}          & \multicolumn{5}{c|}{strong bisimulation}      & \multicolumn{4}{c|}{$F$-bisimulation} \\
+\hline %----------------------------------------------------------------------------------------------------------------
+   & \multicolumn{3}{c|}{original DTMC}
+                                    & \multicolumn{3}{c|}{lumped DTMC}   & \multicolumn{2}{c|}{red.\ factor}
+                                                                                    & \multicolumn{2}{c|}{lumped DTMC}  
+                                                                                                            & \multicolumn{2}{c|}{red.\ factor}\\[1ex]
+\hline %----------------------------------------------------------------------------------------------------------------
+$N$& \multicolumn{1}{c|}{states} &transitions& ver.\ time  &blocks& lump time     & ver.\ time  &states&time&blocks& \multicolumn{1}{c|}{time} &states&time\\
+\hline %----------------------------------------------------------------------------------------------------------------
+3&   2368&    8272&    3.0          & 1123&   8.0          &  1.6          & 2.1&0.3&   233 &    2.9          & 10.2          &1.0 \\
+4&  27600&  123883&   47.0          & 5224& 192\phantom{.0}& 19\phantom{.0}& 5.3&0.4&   785 &   29\phantom{.0}& 35.2          &1.6 \\
+5& 308800& 1680086&  837\phantom{.0}&18501&2880\phantom{.0}&120\phantom{.0}&16.7&0.3&  2159 &  507\phantom{.0}&143\phantom{.0}&1.7 \\
+6&3377344&21514489& 9589\phantom{.0}&  -- &  $> 10^7$ &  --                & -- & --&  5166 & 7106\phantom{.0} & 653\phantom{.0}& 1.4 \\ \hline
+\end{tabular}
+\end{center}
+}
+%
+\noindent Due to the relatively high number of transitions, quotienting the DTMC according to $\AP$-bisimilarity
+is computationally expensive, and takes significantly more time than verifying the original DTMC.
+However, measure-driven bisimilarity yields a quotient that is roughly an order of magnitude smaller
+than the quotient under $\AP$-bisimilarity.
+Due to the coarser initial partition, this quotient is constructed rather fast.
+In this case, verifying the original model is more time consuming.
+
+\subsection{Continuous time}
+
+%This subsection reports on the results obtained for the verification of CTMCs.
+
+\paragraph{Workstation cluster \cite{HaverkortHK_SRDS00}.}
+This case study considers a system consisting of two clusters of workstations connected
+via a backbone.  Each cluster consists of $N$ workstations, connected in a star topology
+with a central switch that provides the interface to the backbone.  Each component can 
+break down according to a failure distribution.  A single repair unit is available to repair
+the failed components.  The number of correctly functioning workstations determines the
+level of quality of service (QoS).  
+The following two tables summarise the results for checking the probability that:
+\begin{itemize}
+\item In the long run, premium QoS will be delivered in at least 70\% of the cases;
+\item QoS drops below minimum QoS within 40 time-units is at most 0.1;
+\item QoS goes from minimum to premium between 20 and 40 time units.
+\end{itemize}
+The last property involves a sequence of two transient analyses on different CTMCs.
+The results for the long-run property:
+%
+{\scriptsize
+\begin{center}
+\begin{tabular}{|r|r|r|r|r|r|r|r|r|}
+\hline 
+%% \hline
+%% \multicolumn{10}{|c|}{\emph{Long-run property for workstation  cluster}} \\ 
+%% \hline \hline
+  & \multicolumn{3}{c|}{original CTMC} & \multicolumn{3}{c|}{lumped CTMC} 
+  & \multicolumn{2}{c|}{red.\ factor} \\[1ex] \hline 
+\multicolumn{1}{|c|}{$N$} & \multicolumn{1}{c|}{states} &transitions& ver.\ time      & \multicolumn{1}{c|}{blocks} &lump time&ver.\ time&states&time \\ \hline
+  8 &    2772 &    12832 &     3.6          &    1413 &    12 &    130   &  2  & 0.03 \\
+ 16 &   10132 &    48160 &    21\phantom{.0}&    5117 &    64 &    770   &  2  & 0.03 \\
+ 32 &   38676 &   186400 &   114\phantom{.0}&   19437 &   290 &    215   &  2  & 0.2\phantom{0} \\
+ 64 &  151060 &   733216 &   730\phantom{.0}&   75725 &  1360 &   1670   &  2  & 0.2\phantom{0} \\
+128 &  597012 &  2908192 &  6500\phantom{.0}&  298893 &  5900 &  14900   &  2  & 0.2\phantom{0} \\
+256 & 2373652 & 11583520 &103000\phantom{.0}& 1187597 & 25400 &  175000   &  2  & 0.2\phantom{0} \\ \hline
+\end{tabular} \end{center} }
+%
+\noindent The plain verification time of the quotient is larger than of the 
+original CTMC, despite a state space reduction of a factor two. 
+This is due to the fact that the subdominant eigenvalues of the Gauss-Seidel iteration matrices differ significantly---the closer
+this value is to one, the slower the convergence rate for the iterative Gauss-Seidel 
+method.
+For instance for $N = 8$, the values of the original (0.156) and the quotient (0.993)
+are far apart and the number of iterations needed differ for about two orders of magnitude.  
+The same applies for $N = 16$.  These differences are much smaller for larger values of $N$.
+
+The results for time-bounded reachability:
+{\scriptsize
+\begin{center}
+\begin{tabular}{|r|r|r|r|r|r|r|r|r|r|r|r|r|}
+\hline 
+%% \hline
+%% \multicolumn{11}{|c|}{\emph{Until-formulas for workstation cluster}}\ 
+%% \hline \hline
+  \multicolumn{5}{|c|}{} & \multicolumn{4}{c|}{time-bounded until $[0,40]$}
+  & \multicolumn{4}{c|}{time-bounded until $[20,40]$} \\ \hline
+  \multicolumn{5}{|c|}{original CTMC} & \multicolumn{2}{c|}{lumped CTMC}  
+  & \multicolumn{2}{c|}{red.\ factor}  & \multicolumn{2}{c|}{lumped CTMC}  
+  & \multicolumn{2}{c|}{red.\ factor}\\[1ex] \hline
+\multicolumn{1}{|c|}{$N$} & \multicolumn{1}{c|}{states} &transitions&ver.\ time&ver.\ time&blocks& \multicolumn{1}{c|}{time} &states& time& blocks& \multicolumn{1}{c|}{time} &states& time \\
+   &         &    & \multicolumn{1}{c|}{$\U^{\leq 40}$} & \multicolumn{1}{c|}{$\U^{[20,40]}$} & &              &      &     &       &                 &     & \\ \hline
+  8&    2772 &    12832 &     36 &    49&   239&   16.3          & 11.6 & 2.2 &   386 &   24.0          & 7.2 & 2.0\\
+ 16&   10132 &    48160 &    360 &   480&   917&   70\phantom{.0}& 11.0 & 5.1 &  1300 &   96.0          & 7.8 & 5.0  \\
+ 32&   38676 &   186400 &   1860 &  2200&  3599&  300\phantom{.0}& 10.7 & 6.2 &  4742 &  430\phantom{.0}& 8.2 & 5.1 \\
+ 64&  151060 &   733216 &   7200 &  8500& 14267& 1810\phantom{.0}& 10.6 & 4.0 & 18082 & 2550\phantom{.0}& 8.4 & 3.3 \\
+128&  597012 &  2908192 &  29700 & 33700& 56819& 9300\phantom{.0}& 10.5 & 3.2 & 70586 &12800\phantom{.0}& 8.5 & 2.6 \\
+256& 2373652 & 11583520 & 121000 &143000&226787&45700\phantom{.0}& 10.5 & 2.6 &278890 &60900\phantom{.0}& 8.5 & 2.3 \\ \hline
+\end{tabular} \end{center} }
+%
+\noindent These results are obtained using a measure-driven bisimulation.
+In contrast, for an $\AP$-bisimulation, we only obtained a 50\% state-space reduction.
+For measure-driven bisimulation another factor 4--5 reduction is obtained.
+	The reduction factors obtained for this case study are not so high,
+	as its formal (stochastic Petri net) specification already exploits some lumping;
+	e.\,g.\@, workstations are modeled by anonymous tokens.
+
+\paragraph{IEEE 802.11 group communication protocol \cite{MassinkKL_DSN04}.}
+This is a variant of the centralized medium access protocol of the IEEE 802.11 standard 
+for wireless local area networks.  
+The protocol is centralized in the sense that medium access is controlled by a fixed node, the Access Point (AP).  
+The AP polls the wireless stations, and on receipt of a poll, stations may broadcast 
+a message.  
+Stations acknowledge the receipt of a message such that the AP is able to detect whether or
+not all stations have correctly received the broadcast message.  
+In case of a detected loss, a retransmission by the originator takes place.  
+It is assumed that the number of consecutive losses of the same message is bounded by {\it OD}, 
+the omission degree.   
+This all refers to time-critical messages; other messages are sent in another 
+phase of the protocol.  
+The property of interest is, as in \cite{MassinkKL_DSN04} and other studies of this protocol, the probability that a message originated by the AP is not received by at
+least one station within the duration of the time-critical phase, i.\,e., $t=2.4$ milliseconds, i.\,e.,
+$\Prob{\bowtie}{p}{\Diamond^{\leq 24000} \mbox{\it fail}}$ where {\it fail} identifies all states
+in which more than {\it OD} losses have taken place. 
+The following table reports the results for the verification of this property for different values of 
+{\it OD} and the minimization results for a measure-driven bisimulation.
+
+{\scriptsize
+\begin{center}
+\begin{tabular}{|r|r|r|r|r|r|r|r|}
+\hline 
+%% \hline
+%% \multicolumn{10}{|c|}{\emph{IEEE 802.11 group communication protocol}} \\ 
+%% \hline \hline
+& \multicolumn{3}{c|}{original CTMC} & \multicolumn{2}{c|}{lumped CTMC} & \multicolumn{2}{c|}{red.\ factor} \\[1ex] \hline 
+     {\it OD}            & \multicolumn{1}{c|}{states} &transitions& \multicolumn{1}{c|}{ver.\ time} &blocks& lump + ver.\ time& states       & time \\ \hline
+ 4    & 1125      & 5369               & 121.9                                & 71         & 13.5      & 15.9    & 9.00     \\
+ %% 8    & 9477      & 54953             & 1303\phantom{.0}          & 496      & 129\phantom{.0}      & 19.1    & 10.1   \\
+ 12   & 37349     & 236313      & 7180\phantom{.0}            & 1821     & 642\phantom{.0}      & 20.5    & 11.2    \\
+ %% 16   & 103173    & 686153      & 21248\phantom{.0}        & 4846     & 2145\phantom{.0}   & 21.2    & 9.9     \\
+ 20   & 231525    & 1590329     & 50133\phantom{.0}       & 10627    & 5431\phantom{.0}  & 21.8    & 9.2     \\
+ %% 24   & 453125    & 3183849     & 105328\phantom{.0}     & 20476    & 12294\phantom{.0}  & 22.1    & 8.6     \\
+ 28   & 804837    & 5750873     & 195086\phantom{.0}     & 35961    & 24716\phantom{.0}  & 22.4    & 7.9     \\
+ %% 32   & 1329669   & 9624713     & 324377\phantom{.0}    & 58906    & 45261\phantom{.0}  & 22.6    & 7.2     \\
+ 36   & 2076773   & 15187833    & 5103900\phantom{.0}   & 91391    & 77694\phantom{.0}  & 22.7    & 6.6     \\
+ 40   & 3101445   & 22871849    & 7725041\phantom{.0}  & 135752   & 127489\phantom{.0}  & 22.9    & 6.1    \\ \hline
+\end{tabular}
+\end{center}
+}
+%
+\noindent We obtain a state space reduction of about a factor 22, which results in an efficiency improvement
+of a factor 5 to 10.
+The reason that the verification times are rather excessive for this model stems from the fact that
+the time bound (24000) is very large, resulting in many iterations.
+These verification times can be improved by incorporating an on-the-fly steady-state 
+detection procedure \cite{KatoenZ_QEST06}, but this is not further considered here. 
+
+\paragraph{Simple P2P protocol \cite{KwiatkowskaNP_CAV06}.}
+This case study describes a simple peer-to-peer protocol based on BitTorrent---a ``torrent''
+is a small file which contains metadata about the files to be shared and about the host 
+computer that coordinates the file distribution. 
+The model comprises a set of clients trying to download a file that has been partitioned 
+into $K$ blocks. 
+Initially, there is a single client that has already obtained all blocks and $N$ additional
+clients with no blocks. 
+Each client can download a block (lasting an exponential delay) from any of the others 
+but they can only attempt four concurrent downloads for each block.
+The following table summarises our minimisation results using $\AP$-bisimilarity
+in columns 3 through 6.
+The property of interest is the probability that all blocks are downloaded within
+0.5~time units.
+The last columns list the results for a recently proposed symmetry reduction technique 
+for probabilistic systems  \cite{KwiatkowskaNP_CAV06} that has been realised in  PRISM.
+
+{\scriptsize
+\begin{center}
+\begin{tabular}{|c|r|r|r|r|r|r|r|r|r|r|r|r|}
+\hline 
+%% \hline
+%% \multicolumn{11}{|c|}{\emph{Until-formulas for workstation cluster}}\ 
+%% \hline \hline
+  \multicolumn{3}{|c|}{} & \multicolumn{5}{c|}{bisimulation minimisation}
+  & \multicolumn{5}{c|}{symmetry reduction} \\ \hline
+  \multicolumn{3}{|c|}{original CTMC} & \multicolumn{3}{c|}{lumped CTMC}  
+  & \multicolumn{2}{c|}{red.\ factor}  & \multicolumn{3}{c|}{reduced CTMC}  
+  & \multicolumn{2}{c|}{red.\ factor} \\[1ex] \hline 
+$N$& \multicolumn{1}{c|}{states} & ver.\ time    &blocks& lump time     & ver.\ time     & \multicolumn{1}{c|}{states} & time       &states&red.\ time& ver.\ time & states & \multicolumn{1}{c|}{time} \\ \hline
+2&   1024&    5.6          & 56&    1.4          &   0.3          & 18.3           &3.3 &  528& 12&  2.9          & 1.93          & 0.38 \\
+3&  32768&  410\phantom{.0}&252&  170\phantom{.0}&   1.3          & 130\phantom{.0}&2.4 & 5984&100& 59\phantom{.0}& 5.48          & 2.58 \\
+4&1048576&22000\phantom{.0}&792&10200\phantom{.0}&   4.8          &1324\phantom{.0}&2.2 &52360&360&820\phantom{.0}&20.0\phantom{0}& 18.3\phantom{0} \\ \hline
+\end{tabular}
+\end{center}
+}
+\noindent
+We observe that bisimulation minimisation leads to a significantly stronger state-space reduction
+than symmetry reduction. 
+For $N = 3$ and $N = 4$, bisimulation minimisation leads to a state-space reduction of more than
+23 and 66 times, respectively, the reduction of symmetry reduction.
+Symmetry reduction is---as expected---much faster than bisimulation minimisation, but this is a
+somewhat unfair comparison as the symmetries are indicated manually.
+These results suggest that it is affordable to first apply a (fast) symmetry reduction, followed by 
+a bisimulation quotienting on the obtained reduced system.
+Unfortunately, the available tools did not allow us to test this idea.
+
+\subsection{Rewards}
+This section reports on the results for bisimulation minimisation for Markov reward models.
+Note that the initial partitions need to be adapted such that only states with
+equal reward are grouped. 
+We have equipped two DTMCs and one CTMC with a reward assignment function $r$:
+%
+\begin{itemize}
+\item Crowds protocol (DMRM): the reward indicates the number of messages sent;
+\item Randomised mutual exclusion protocol (DMRM): the reward indicates the number of attempts 
+  that have been undertaken to acquire access to the critical section;
+\item Workstation cluster (CMRM): the reward is used to measure the repair time. 
+\end{itemize}
+%
+Recall that for DMRMs, $r(s)$ indicates the reward that is earned on leaving a state, while for CMRMs, 
+$r(s){\cdot}t$ is the earned reward when staying $t$ time-units in $s$.
+The experiments are focused on verifying time- and reward-bounded until-formulas.
+For DMRMs, these formulas are checked using a path graph generation algorithm as proposed
+in \cite{AndovaHK_FORMATS03} which has a time complexity in $O(k{\cdot}r{\cdot}|S|^3)$, where $k$ and 
+$r$ are the time-bound and reward-bound, respectively.
+For CMRMs, we employed the discretization approach by Tijms and Veldman as proposed in 
+\cite{HaverkortCHKB_DSN02} which runs in time $O(t{\cdot}r{\cdot}|S|^3{\cdot}d^{{-}2})$ where
+$d$ is the step size of the discretisation.
+In our experiments, the default setting is $d = \frac{1}{32}$.
+
+For the Crowds protocol (for $R=3$), we checked the probability that the sender's id is discovered
+within 100 steps and maximally two messages, i.\,e., $\mathcal{P}_{\leq p}(\Diamond^{\leq 100}_{\leq 2}
+\mbox{\it observe})$.
+In case of the randomised mutual exclusion protocol, we checked $\Prob{\leq}{q}{\bigwedge_{j \neq 1}^N
+\neg \mbox{\sl enter}_j \U^{\leq 50}_{\leq 10} \mbox{\sl  enter}_1}$, i.\,e., maximally 10 attempts
+are allowed to enter the critical section.
+Finally, for the workstation cluster, we checked the change of providing minimum QoS to premium
+QoS within maximally 5 time units of repair (and 10 time units).
+All results are listed in the following table.
+
+Due to the prohibitive (practical) time-complexity, manageable state space sizes are (much) smaller than
+for the case without rewards.
+Another consequence of these large verification times, bisimulation minimisation is relatively cheap,
+and results in possibly drastic time savings, as for the Crowds protocol. 
+  
+{\scriptsize
+\begin{center}
+\begin{tabular}{|r|r|r|r|r|r|r|r|}
+\hline 
+\hline
+\multicolumn{8}{|c|}{\emph{Crowds protocol with rewards}} \\ 
+\hline \hline
+& \multicolumn{3}{c|}{original DTMC} & \multicolumn{2}{c|}{lumped DTMC} & \multicolumn{2}{c|}{red.\ factor} \\[1ex] \hline 
+  $N$        & \multicolumn{1}{c|}{states} &transitions& ver.\ time    &blocks& lump + ver.\ time& \multicolumn{1}{c|}{states} & \multicolumn{1}{c|}{time} \\ \hline
+
+ 5    & 1198      & 2038        & 2928 & 93       & 44.6    & 12.88    & 65.67    \\
+%% ---------------------------------------------------------------------------------------------
+ 10   & 6563      & 15143       & 80394 & 103      & 73.5    & 63.72    & 1094.49  \\
+%% ---------------------------------------------------------------------------------------------
+ 15   & 19228     & 55948       & 1004981 & 103      & 98.7    & 186.68   & 10182.13 \\
+%% ---------------------------------------------------------------------------------------------
+ 20   & 42318     & 148578      & 5174951 & 103      & 161\phantom{.0}     & 410.85   & 32002.61 \\
+\hline \hline
+\multicolumn{8}{|c|}{\emph{Randomised mutual exclusion protocol with rewards}} \\
+\hline \hline
+%% & \multicolumn{3}{c|}{original CTMC} & \multicolumn{2}{c|}{lumped CTMC} & \multicolumn{2}{c|}{red.\ factor} \\[1ex] \hline 
+%%  $N$        &  states &transitions& ver.\ time    &blocks& lump + ver.\ time& states       & time \\ \hline
+ 2    & 188       & 455         & 735      & 151      & 616     & 1.25     & 1.19     \\
+%%--------------------------------------------------------------------------------------------
+ 3    & 2368      & 8272        & 60389    & 1123     & 19010   & 2.11     & 3.18     \\
+%%---------------------------------------------------------------------------------------------
+ 4    & 27600     & 123883      & 5446685  & 5224     & 298038  & 5.28     & 18.28    \\
+%% ---------------------------------------------------------------------------------------------
+ 5    & 308800    & 1680086     & $> 10^7$    & 18501    & 3664530 & 16.69    & --   \\
+\hline \hline
+\multicolumn{8}{|c|}{\emph{Workstation cluster with rewards}} \\ 
+\hline \hline
+%% & \multicolumn{3}{c|}{original CTMC} & \multicolumn{2}{c|}{lumped CTMC} & \multicolumn{2}{c|}{red.\ factor} \\[1ex] \hline 
+%%  $N$        &  states &transitions& ver.\ time    &blocks& lump + ver.\ time& states       & time \\ \hline
+%% 1    | 112       | 400         | 58629375    | 62       | 1.47017e+07| 1.81     | 3.99     |
+%% ---------------------------------------------------------------------------------------------
+ 2    & 276       & 1120        & 278708 & 147      & 55448 & 1.88     & 5.03     \\
+%% ---------------------------------------------------------------------------------------------
+ 3    & 512       & 2192        & 849864 & 268      & 151211 & 1.91     & 5.62     \\
+%% ---------------------------------------------------------------------------------------------
+ 4    & 820       & 3616        & 2110095 & 425      & 347324  & 1.93     & 6.08     \\
+%% ---------------------------------------------------------------------------------------------
+ 5    & 1200      & 5392        & $> 10^7$    & 618      & 2086575 & 1.94     & --   \\
+%% ---------------------------------------------------------------------------------------------
+ 6    & 1652      & 7520        & $> 10^7$    & 847      & 3657682 & 1.95     & --   \\
+%% ---------------------------------------------------------------------------------------------
+\hline
+\end{tabular}
+\end{center}
+}
+
+\section{Concluding remarks}
+\label{sec:concl}
+
+Our experiments confirm that significant (up to logarithmic) state space reductions
+can be obtained using bisimulation minimisation.
+The appealing feature of this abstraction technique is that it is fully automated.
+For several case studies, also substantial reductions in time have been obtained
+(up to a factor 25).
+This contrasts results for traditional model checking where bisimulation minimisation
+typically outweighs verifying the original system.
+Time reduction strongly depends on the number of transitions in the Markov chain, its 
+structure, as well as on the convergence rate of numerical computations.
+The P2P protocol experiment shows encouraging results compared with symmetry reduction 
+\cite{KwiatkowskaNP_CAV06} (where symmetries are detected manually).
+For measure-driven bisimulation for models without rewards, this speedup comes with
+no memory penalty: the peak memory use is typically unchanged; for ordinary bisimulation
+some experiments showed an increase of peak memory up to 50\,\%.  
+In our case studies with rewards, we experienced a 20--40\,\% reduction in peak memory 
+use.
+
+We plan to further investigate combinations of symmetry reduction with bisimulation
+minimisation, and to extend our experimental work towards MDPs and simulation
+preorders.
+
+{\small
+\paragraph{Acknowledgement.}
+This research has been performed as part of the MC=MC project that is financed by the Netherlands Organization for Scientific Research (NWO), and the project VOSS2 that is financed by NWO and the
+German Research Council (DFG).
+}
+
+%\input{refs}
+%\bibliographystyle{splncs}
+{\small
+	%Bibliography
+	\bibliography{../../../../../Thesis/thesis}
+% %\bibliography{refs}
+% \begin{thebibliography}{10}
+% 
+% \bibitem{AndovaHK_FORMATS03}
+% Andova, S., Hermanns, H., Katoen, J.-P.:
+% \newblock Discrete-time rewards model-checked.
+% \newblock In Larsen, K.~G.,  et~al. (eds.): \emph{FORMATS}. \emph{LNCS}, Vol.\@
+%   2791.
+% \newblock Springer, Berlin (2003)  88--104
+% 
+% \bibitem{AzizSSB_ACMTCL00}
+% Aziz, A., Sanwal, K., Singhal, V., Brayton, R.:
+% \newblock Model-checking continuous time {M}arkov chains.
+% \newblock \emph{ACM TOCL} \textbf{1} (2000)  162--170
+% 
+% \bibitem{AzizSSBSV_CAV95}
+% Aziz, A., Singhal, V., Balarin, F., Brayton, R.~K., Sangiovanni-Vincentelli,
+%   A.~L.:
+% \newblock It usually works: the temporal logic of stochastic systems.
+% \newblock In Wolper, P. (ed.): \emph{CAV}. \emph{LNCS}, Vol.\@ 939.
+% \newblock Springer, Berlin (1995)  155--165
+% 
+% \bibitem{BaierCG_SIGMETRICS05}
+% Baier, C., Ciesinski, F., Gr{\"o}{\ss}er, M.:
+% \newblock {P}rob{M}ela and verification of {M}arkov decision processes.
+% \newblock \emph{Performance Evaluation Review} \textbf{32} (2005)  22--27
+% 
+% \bibitem{BaierHHK_ICALP00}
+% Baier, C., Haverkort, B., Hermanns, H., Katoen, J.-P.:
+% \newblock On the logical characterisation of performability properties.
+% \newblock In Montanari, U.,  et~al. (eds.): \emph{ICALP}. \emph{LNCS}, Vol.\@
+%   1853.
+% \newblock Springer, Berlin (2000)  780--792
+% 
+% \bibitem{BaierHHK_TSE03}
+% Baier, C., Haverkort, B., Hermanns, H., Katoen, J.-P.:
+% \newblock Model-checking algorithms for continuous-time {M}arkov chains.
+% \newblock \emph{IEEE TSE} \textbf{29} (2003)  524--541
+% 
+% \bibitem{BaierKHW_IC05}
+% Baier, C., Katoen, J.-P., Hermanns, H., Wolf, V.:
+% \newblock Comparative branching-time semantics for {M}arkov chains.
+% \newblock \emph{Information and Computation} \textbf{200} (2005)  149--214
+% 
+% \bibitem{MamounPY_EQST06}
+% Ben~Mamoun, M., Pekergin, N., Youn{\`e}s, S.:
+% \newblock Model checking of continuous-time {M}arkov chains by closed-form
+%   bounding distributions.
+% \newblock In: \emph{QEST}.
+% \newblock IEEE CS, Los Alamitos (2006)  189--198
+% 
+% \bibitem{BodeHHJPPWB_QEST06}
+% B{\"o}de, E., Herbstritt, M., Hermanns, H., Johr, S., Peikenkamp, T., Pulungan,
+%   R., Wimmer, R., Becker, B.:
+% \newblock Compositional performability evaluation for \textsc{State\-mate}.
+% \newblock In: \emph{QEST}.
+% \newblock IEEE CS, Los Alamitos (2006)  167--178
+% 
+% \bibitem{Buchholz_JAP94}
+% Buchholz, P.:
+% \newblock Exact and ordinary lumpability in finite {M}arkov chains.
+% \newblock \emph{Journal of Applied Probability} \textbf{31} (1994)  59--75
+% 
+% \bibitem{DAprileDS_DS04}
+% D'Aprile, D., Donatelli, S., Sproston, J.:
+% \newblock {CSL} model checking for the {G}reat{SPN} tool.
+% \newblock In Aykanat, C.,  et~al. (eds.): \emph{Computer and Information
+%   Sciences, ISCIS}. \emph{LNCS}, Vol.\@ 3280.
+% \newblock Springer, Berlin (2004)  543--553
+% 
+% \bibitem{DArgenioJJL_PAPMPROBMIV01}
+% D'Argenio, P.~R., Jeannet, B., Jensen, H.~E., Larsen, K.~G.:
+% \newblock Reachability analysis of probabilistic systems by successive
+%   refinements.
+% \newblock In de~Alfaro, L.,  et~al. (eds.): \emph{PAPM--PROBMIV}. \emph{LNCS},
+%   Vol.\@ 2165.
+% \newblock Springer, Berlin (2001)  39--56
+% 
+% \bibitem{Derisavi_PhD05}
+% Derisavi, S.:
+% \newblock \emph{Solution of {L}arge {M}arkov {M}odels using {L}umping
+%   {T}echniques and {S}ymbolic {D}ata {S}tructures}.
+% \newblock PhD thesis, Univ.\@ of Illinois at Urbana-Champaign (2005)
+% 
+% \bibitem{DerisaviHS_IPL03}
+% Derisavi, S., Hermanns, H., Sanders, W.~H.:
+% \newblock Optimal state-space lumping in {M}arkov chains.
+% \newblock \emph{IPL} \textbf{87} (2003)  309--315
+% 
+% \bibitem{FecherLW_SPIN06}
+% Fecher, H., Leucker, M., Wolf, V.:
+% \newblock Don't know in probabilistic systems.
+% \newblock In Valmari, A. (ed.): \emph{Model Checking Software}. \emph{LNCS},
+%   Vol.\@ 3925.
+% \newblock Springer, Berlin (2006)  71--88
+% 
+% \bibitem{FislerV_FMCAD98}
+% Fisler, K., Vardi, M.~Y.:
+% \newblock Bisimulation minimization in an automata-theoretic verification
+%   framework.
+% \newblock In Gopalakrishnan, G.,  et~al. (eds.): \emph{FMCAD}. \emph{LNCS},
+%   Vol.\@ 1522.
+% \newblock Springer, Berlin (1998)  115--132
+% 
+% \bibitem{FislerV_CHARME99}
+% Fisler, K., Vardi, M.~Y.:
+% \newblock Bisimulation and model checking.
+% \newblock In Pierre, L.,  et~al. (eds.): \emph{CHARME}. \emph{LNCS}, Vol.\@
+%   1703.
+% \newblock Springer, Berlin (1999)  338--342
+% 
+% \bibitem{FislerV_FMSD02}
+% Fisler, K., Vardi, M.~Y.:
+% \newblock Bisimulation minimization and symbolic model checking.
+% \newblock \emph{Formal Methods in System Design} \textbf{21} (2002)  39--78
+% 
+% \bibitem{GroesserB_FMCOB05}
+% Groesser, M., Baier, C.:
+% \newblock Partial order reduction for {M}arkov decision processes: a survey.
+% \newblock In de~Boer, F.~S.,  et~al. (eds.): \emph{FMCO}. \emph{LNCS}, Vol.\@
+%   4111.
+% \newblock Springer, Berlin (2006)  408--427
+% 
+% \bibitem{HanssonJ_FAC94}
+% Hansson, H., Jonsson, B.:
+% \newblock A logic for reasoning about time and reliability.
+% \newblock \emph{Formal Aspects of Computing} \textbf{6} (1994)  512--535
+% 
+% \bibitem{HaverkortCHKB_DSN02}
+% Haverkort, B., Cloth, L., Hermanns, H., Katoen, J.-P., Baier, C.:
+% \newblock Model checking performability properties.
+% \newblock In: \emph{DSN}.
+% \newblock IEEE CS, Los Alamitos (2002)  103--112
+% 
+% \bibitem{HaverkortHK_SRDS00}
+% Haverkort, B.~R., Hermanns, H., Katoen, J.-P.:
+% \newblock On the use of model checking techniques for quantitative
+%   dependability evaluation.
+% \newblock In: \emph{19th IEEE Symposium on Reliable Distributed Systems}.
+% \newblock IEEE CS, Los Alamitos (2000)  228--237
+% 
+% \bibitem{HermannsKNPS_JLAP03}
+% Hermanns, H., Kwiatkowska, M., Norman, G., Parker, D., Siegle, M.:
+% \newblock On the use of {MTBDD}s for performability analysis and verification
+%   of stochastic systems.
+% \newblock \emph{J.\@ of Logic and Alg.\@ Progr.\@} \textbf{56} (2003)  23--67
+% 
+% \bibitem{Hillston_96}
+% Hillston, J.:
+% \newblock \emph{A Compositional Approach to Performance Modelling}.
+% \newblock Cambridge University Press (1996)
+% 
+% \bibitem{Huth_VSS04}
+% Huth, M.:
+% \newblock An abstraction framework for mixed non-deterministic and
+%   probabilistic systems.
+% \newblock In Baier, C.,  et~al. (eds.): \emph{Validation of Stochastic
+%   Systems}. \emph{LNCS}, Vol.\@ 2925.
+% \newblock Springer, Berlin (2004)  419--444
+% 
+% \bibitem{Huth_TCS05}
+% Huth, M.:
+% \newblock On finite-state approximants for probabilistic computation tree
+%   logic.
+% \newblock \emph{TCS} \textbf{346} (2005)  113--134
+% 
+% \bibitem{IbeT_SAC90}
+% Ibe, O.~C., Trivedi, K.~S.:
+% \newblock Stochastic {P}etri net models of polling systems.
+% \newblock \emph{IEEE J.\ on Selected Areas in Communications} \textbf{8} (1990)
+%    1649--1657
+% 
+% \bibitem{ItaiR_IC90}
+% Itai, A., Rodeh, M.:
+% \newblock Symmetry breaking in distributed networks.
+% \newblock \emph{Information and Computation} \textbf{88} (1990)  60--87
+% 
+% \bibitem{KatoenKZ_QEST05}
+% Katoen, J.-P., Khattri, M., Zapreev, I.~S.:
+% \newblock A {M}arkov reward model checker.
+% \newblock In: \emph{QEST}.
+% \newblock IEEE CS, Los Alamitos (2005)  243--244
+% 
+% \bibitem{KatoenZ_QEST06}
+% Katoen, J.-P., Zapreev, I.~S.:
+% \newblock Safe on-the-fly steady-state detection for time-bounded reachability.
+% \newblock In: \emph{QEST}.
+% \newblock IEEE CS, Los Alamitos (2006)  301--310
+% 
+% \bibitem{HintonKNP_TACAS06}
+% Kwiatkowska, M., Norman, G., Parker, D.:
+% \newblock Probabilistic symbolic model checking with {HintonKNP_TACAS06}: a hybrid
+%   approach.
+% \newblock \emph{Int.\@ J. on STTT} \textbf{6} (2004)  128--142
+% 
+% \bibitem{KwiatkowskaNP_QEST06}
+% Kwiatkowska, M., Norman, G., Parker, D.:
+% \newblock Game-based abstraction for {M}arkov decision processes.
+% \newblock In: \emph{QEST}.
+% \newblock IEEE CS, Los Alamitos (2006)  157--166
+% 
+% \bibitem{KwiatkowskaNP_CAV06}
+% Kwiatkowska, M., Norman, G., Parker, D.:
+% \newblock Symmetry reduction for probabilistic model checking.
+% \newblock In Ball, T.,  et~al. (eds.): \emph{CAV}. \emph{LNCS}, Vol.\@ 4144.
+% \newblock Springer, Berlin (2006)  234--248
+% 
+% \bibitem{LarsenS_IC91}
+% Larsen, K.~G., Skou, A.:
+% \newblock Bisimulation through probabilistic testing.
+% \newblock \emph{Information and Computation} \textbf{94} (1991)  1--28
+% 
+% \bibitem{MassinkKL_DSN04}
+% Massink, M., Katoen, J.-P., Latella, D.:
+% \newblock Model checking dependability attributes of wireless group
+%   communication.
+% \newblock In: \emph{DSN}.
+% \newblock IEEE CS, Los Alamitos (2004)  711--720
+% 
+% \bibitem{Monniaux_SCP05}
+% Monniaux, D.:
+% \newblock Abstract interpretation of programs as {M}arkov decision processes.
+% \newblock \emph{Science of Computer Programming} \textbf{58} (2005)  179--205
+% 
+% \bibitem{PnueliZ_DC86}
+% Pnueli, A., Zuck, L.:
+% \newblock Verification of multiprocess probabilistic protocols.
+% \newblock \emph{Distributed Computing} \textbf{1} (1986)  53--72
+% 
+% \bibitem{ReiterR_ACMTISS98}
+% Reiter, M.~K., Rubin, A.~D.:
+% \newblock Crowds: anonymity for web transactions.
+% \newblock \emph{ACM Transactions on Information and System Security} \textbf{1}
+%   (1998)  66--92
+% 
+% \bibitem{Sproston_TSE06}
+% Sproston, J., Donatelli, S.:
+% \newblock Backward bisimulation in {M}arkov chain model checking.
+% \newblock \emph{IEEE TSE} \textbf{32} (2006)  531--546
+% 
+% \end{thebibliography}
+}
+
+\end{document}

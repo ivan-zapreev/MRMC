@@ -1,0 +1,160 @@
+ 
+Paper: 24
+Title: Safe On-The-Fly Steady-State Detection for Time-Bounded Reachability
+
+-------------------- review 74 --------------------
+ 
+OVERALL RATING: 2 (accept) 
+CONFIDENCE: 3 (high)  
+----------------------- REVIEW --------------------
+
+The paper presents a detailed analysis of the issue of "steady-state detection" for transient probability computation and CSL model checking (time-bounded until operator) on CTMCs. The authors summarise existing results and then present new convergence criteria for both forward (transient analysis) and backwards (model checking) calculations, highlighting inaccuracies with earlier criteria. Since the theoretical convergence criteria proposed are not actually feasible to check, the authors propose a new, practical convergence check, which relies on computation of the BSCCs of the CTMC and (for the backwards case) computation of additional reachability probabilities. Experimental results are given for the backwards method, first on an artificial 3 state CTMC and then on a small but well known benchmark CTMC. The authors implementation of their technique is shown to successfully compute accurate probabilities on these examples where other tools (PRISM and ETMCC) terminate prema!
+ turely. The additional calculations required are shown to double the time required for computation.
+
+The paper gives a thorough and clear presentation of the material and the proofs of the convergence criteria appear sound. The empirical results are on small examples but do show that, where the problem of early termination exists, their approach seems to solve the problem. I would say that the paper makes a small but important contribution and would therefore suggest "accept".
+
+
+OTHER COMMENTS
+
+In your discussion of the experimental results, you say that the other tools terminate prematurely but not why. Is it because the bounds in the termination they are using are wrong or because they are not using the new type of check you propose?
+
+You mention that your method doubles the time requirements but don't mention space. Surely at least another vector is required? If so, this is definitely significant, especially for large CTMCs.
+
+Can you say also something about the effect that needing to compute the BSCCs has on runtime?
+
+
+MINOR COMMENTS + TYPOS
+
+p.1 para 1: There is no point using epsilon notation here when it is not clear what this value actually means.
+
+p.1 para 2:
+I don't think relating these ideas to verification of timed automata is very helpful - the problems are very different.
+You should explain what "validity of a logical property" means here. Maybe give an example CSL formula here wit brief explanation of its meaning.
+With regards to O(N) improvement of backwards over forwards method, explain that this is a comparison against the forward method done N times.
+
+p.1 line -1: "Fox-Glynn" -> "Fox and Glynn"
+
+p.2 para 2 line 2: "its discrete" -> "their discrete"
+
+p.2 col 2 line -1: Say what "tolerance criterion e > 0" is exactly.
+
+p.3 defn 3: Say somewhere that t is real (this is not clear).
+
+p.3 line after eqn 3: "defines" -> "denotes" ?
+
+p.3 eqn 6 (and others): three-part definition is very hard to read. Can you reformat it somehow?
+
+p.6 thm 6: It would help to make clear somewhere what the role of the set Ind is in this.
+
+p.12 conclusion line -2: I don't think "factor two" equates to "slightly" increasing runtime. 
+
+
+-------------------- review 162 --------------------
+ 
+OVERALL RATING: 1 (weak accept) 
+CONFIDENCE: 1 (low)  
+----------------------- REVIEW --------------------
+
+The paper addresses is a mixture of a summary of existing work on criteria for steady-state detection, and 
+as a "spin off" suggests a technique that is more reliable in the sense of not detecting such steady states 
+early (ie unsoundly). It's a well chosen problems, and a concrete result.
+
+I comment mainly on the structure of the paper, being unfamiliar with the technical area.
+
+The main point seems to be at the end of Sec 4.1, where the (unwarranted?) assumptions made in 
+standard analyses are brought out. This should be at the front rather than the rear of a major section, as it 
+part of the paper's main objective (and occurs only at the end of p6).
+
+Section 5, following, where the new work begins, should start with an explanation of how the unwarranted 
+assumptions are avoided: from a "high-level" reading of this section I can't find in English anything saying 
+(or summarising) how this is done.
+
+Finally, in section 6 the safety issue is taken up --- the new results are mentioned as providing  safe 
+criteria --- immediately we find that they, too, are dependent on guesswork to the extent that "the steady 
+state vector... is typucally unknown". And the remedy is to "suggest" something; but the text ofthe section 
+does not say whether the suggestion recovers "abosute" safety for the new technique, or whether it, in 
+turn, is open to some imprecision (although, one hopes, less than before).
+
+In summary, if the paper is as it appears to be (after reading), then it should say so up front: "Existing 
+techniches are imprecise, and can give incorrect results; we give an example to show that this really 
+happens; we also refer to a standard "benchmark" example where the imprecision occurs; we propose a 
+new technique that _is_ precise; we prove that it is so; and we report some experimental results on its 
+efficiency." 
+
+
+-------------------- review 227 --------------------
+ 
+OVERALL RATING: 2 (accept) 
+CONFIDENCE: 3 (high)  
+----------------------- REVIEW --------------------
+
+The paper proposes an improvement of steady state detection in the context of time bounded reachability for CTMC model checking.
+The authors first etasblish a sharper evaluation for transient probabilities of CTMC based on Fox-Glynn previous result.
+Then they use this Fox-Glynn improvement for steady state detection of time bounded reachability probabilities computation used in probabilistic model checkers (PRISM, ETMCC, and their solver MRMC).
+They show through two examples (a had hoc example and an effective example of workstation cluster) how their improvements allow for not too early steady state detection.
+A too early detection provides a probability which could be false (i.e.; out of error bounds) for enough large time horizon.
+
+Overall recommendation: accept.
+
+Detailed comments:
+The paper is very interesting, although some sections are (and must be!) rather technical.
+The authors provide a very good introduction to the transient computation problem and also to probabilistic model checking of time bounded formulae.
+Since the paper tries to be almost self-content, it seems a little bit long to me (and proof of theorem 7 is typeset in small font!): pearhaps a condensed proof, and the reference to the technical report could be sufficeint?
+
+In section 7, I would like to see more precisely when previous algorithms produce false results (error being over $\epsilon$) because of premature steady state detection.
+
+Writting details
+Could the reaability of figures 2 and 3 improved? Or indicate where are the curve  for MRMC SSD on (I suppose "covered" by the MatLab curve?
+In figure 3, time unit is $103$ ?
+p11, c2, l-12: is "!minimum" means not minimum?
+
+typos:
+p5, c1, l6: de fintion -> definition
+p5, c2, footnote:  A without dot
+p8, c1, l7: f irst -> first
+p8, c2, l13: a final $\epsilon$ is missing 
+
+
+-------------------- review 31 --------------------
+ 
+OVERALL RATING: 2 (accept) 
+CONFIDENCE: 2 (medium)  
+----------------------- REVIEW --------------------
+
+The paper presents two algorithms to approximate
+Prob(s, A U[0,t] G): the probability for state s of a 
+continuous-time Markov chain to satisfy the formula
+A U[0,t] G: each run started in s stays in the set of states A
+until it reaches a state in the set of states G and this state 
+in G is reached before time t.  The one algorithm approximates 
+this probability in a forward manner and the other one in a 
+backward manner.  Detailed correctness proofs are presented.  
+The new algorithms have been implemented within the tool MRMC.
+Experimental results show that MRMC does not suffer from
+premature stationarity, as some other tools like Prism and
+ETMCC do.
+
+The problem addressed in this paper is of interest and relevant
+for QEST.  As far as I can tell, the results are correct.  I 
+appreciate the fact that the authors provided detailed proofs 
+and implemented the algorithms.  The paper is very carefully
+written and also well-written.
+
+Detailed comments for the authors
+
+page 5, footnote 2
+  A. -> A
+
+page 6, right column, line -2
+  The = confused me a little, until I saw Theorem 7 on the
+  next page.  Possibly you could replace = with \approx.
+
+page 8, proof of Theorem 7
+  In the very last step of the proof, it is not clear to me
+  why you need
+    "Now, for arbitrary ..."
+  Isn't this step immediate since \epsilon / 4 < 3 \epsilon / 4
+  (maybe I am missing something)?
+
+page 9
+  LaTeX suggestion: use Theorem~7 instead of Theorem 7. 

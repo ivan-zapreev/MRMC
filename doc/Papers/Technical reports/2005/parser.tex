@@ -1,0 +1,87 @@
+\begin{table}[!ht]
+\caption{Parser for PCTL/PRCTL/CSL/CSRL}
+\begin{center}
+\begin{tiny}
+\begin{tabular}{||lll||}
+\hline\hline
+Non-Terminal	&  & Production Rule\\
+\hline mformula & $\longrightarrow$ & stateformula NEWLINE \\
+& | & SET EB FNUM NEWLINE\\
+& | & SET MI FNUM NEWLINE \\
+& | & SET OV FNUM NEWLINE \\
+& | & SET UN FNUM NEWLINE \\
+& | & SET MP GAJA NEWLINE \\
+& | & SET MP GASE NEWLINE \\
+& | & SET MS GAJA NEWLINE \\
+& | & SET MS GASE NEWLINE \\
+& | & HELP NEWLINE \\
+\hline stateformula & $\longrightarrow$ & notstateformula \\
+& | & bracedstateformula \\
+& | & propositionstateformula \\
+& | & steadystateformula \\
+& | & transientstateformula \\
+& | & lstateformula \\
+& | & estateformula \\
+& | & cstateformula \\
+& | & ystateformula \\
+\hline notstateformula & $\longrightarrow$ & notformula \\
+& | & notformula connective stateformula \\
+\hline bracedstateformula & $\longrightarrow$ & bracedformula \\
+& | & bracedformula connective stateformula \\
+\hline propositionstateformula & $\longrightarrow$ & propositionformula \\
+& | & propositionformula connective stateformula \\
+\hline steadystateformula & $\longrightarrow$ & steadyformula \\
+& | & steadyformula connective stateformula \\
+\hline transientstateformula & $\longrightarrow$ & transientformula \\
+& | & transientformula connective stateformula \\
+\hline lstateformula & $\longrightarrow$ & lformula \\
+& | & lformula connective stateformula \\
+\hline estateformula & $\longrightarrow$ & eformula \\
+& | & eformula connective stateformula \\
+\hline cstateformula & $\longrightarrow$ & cformula \\
+& | & cformula connective stateformula \\
+\hline ystateformula & $\longrightarrow$ & yformula \\
+& | & yformula connective stateformula \\
+\hline notformula & $\longrightarrow$ & COMPLEMENT formula \\
+\hline formula & $\longrightarrow$ & notformula \\
+& | & bracedformula \\
+& | & propositionformula \\
+& | & steadyformula \\
+& | & transientformula \\
+& | & lformula \\
+& | & eformula \\
+& | & cformula \\
+& | & yformula \\
+\hline bracedformula & $\longrightarrow$ & LP stateformula RP \\
+\hline propositionformula & $\longrightarrow$ & TT \\
+& | & FF \\
+& | & AP \\
+\hline steadyformula & $\longrightarrow$ & STEADY LC comparator FNUM RC LB stateformula RB \\
+\hline transientformula & $\longrightarrow$ & TRANSIENT LC comparator FNUM RC LB pathformula RB \\
+\hline pathformula & $\longrightarrow$ & LP pathformula RP \\
+& | & untilformula \\
+& | & nextformula \\
+\hline untilformula & $\longrightarrow$ & stateformula UNTIL stateformula \\
+& | & stateformula UNTIL LB FNUM COMMA FNUM RB stateformula \\
+& | & stateformula UNTIL LB FNUM COMMA FNUM RB LB FNUM COMMA FNUM RB stateformula \\
+\hline nextformula & $\longrightarrow$ & NEXT stateformula \\
+& | & NEXT LB FNUM COMMA FNUM RB stateformula \\
+& | & NEXT LB FNUM COMMA FNUM RB LB FNUM COMMA FNUM RB stateformula \\
+\hline lformula & $\longrightarrow$ & LF LC comparator FNUM RC LB stateformula RB \\
+\hline eformula & $\longrightarrow$ & EF LB FNUM COMMA FNUM RB LB stateformula RB \\
+& | & EF LB FNUM RB LB FNUM COMMA FNUM RB LB stateformula RB \\
+\hline cformula & $\longrightarrow$ & CF LB FNUM RB LB FNUM COMMA FNUM RB LB stateformula RB \\
+\hline yformula & $\longrightarrow$ & YF LB FNUM RB LB FNUM COMMA FNUM RB LB stateformula RB \\
+\hline connective & $\longrightarrow$ & AND \\
+& | & OR \\
+& | & IMPLIES \\
+\hline comparator & $\longrightarrow$ & Gr \\
+& | & GE \\
+& | & Le \\
+& | & LE \\
+\hline \hline
+\end{tabular}
+\end{tiny}
+\end{center}
+\label{Tbl:parser}
+\end{table}

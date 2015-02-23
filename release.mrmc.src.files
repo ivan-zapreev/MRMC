@@ -1,0 +1,12 @@
+./release.sh
+./exclude.mrmc.lst
+./release.mrmc.src.files
+./release.mrmc.bin.files
+./buglist.txt
+./LICENSE.txt
+./READ.ME
+./makefile
+./makefile.def
+./doc
+./include
+./src

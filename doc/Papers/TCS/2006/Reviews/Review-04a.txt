@@ -1,0 +1,70 @@
+TCS-QAPL 2006 Special Issue Review Form
+
+
+ Review  
+
+   Paper number: 04
+   Title:        Safe On-The-Fly Steady-State Detection for 
+                 Time-Bounded Reachability
+   Author(s):    Joost-Pieter Katoen, Ivan S. Zapreev
+   
+
+ Detailed Comments
+
+Summary: 
+
+The authors present in this paper criteria for detecting steady states
+in transient analysis for continuous time Markov Chains (CTMC). This
+mainly consists of a ``slight refinment'' (p3,l15) of the Fox-Glynn
+error bound, some related criteria for steady state detection
+(addressing also the problem of false-positives, i.e. spurious stead
+states) and finaly some experimental results.
+
+The paper is extremely badly structured and the results are presented
+in a very sloppy style which is unacceptable. The contribution of the
+paper is rather limited as the authors themselves acknowledge. While
+the first point could perhaps be fixed by a major revision, I think
+that with regard to the second point the paper's contribution is below
+the threshold for a journal like TCS (given also the fact that this is
+an ``extended version'' of a previously published paper [13]). Though
+the topic would fit well within the CfP for this special issue, I
+nevertheless would recommend to reject the paper based on the grounds
+that it lacks novelty and originality, that the presentation itself is
+unsatifactory, and that its contribution appears to be rather
+marginal.
+
+To illustrate some of the points regarding the structure and
+presentation: The paper starts with ``When performing transient
+analysis ...'' - so I assumed that the intended audience is for people
+who have some background in DTMCs or CTMCs, transient analyis, etc -
+however in section 2 DTMCs or CTMCs are introduced in a very basic
+(and incomplete way) way: Either the readers are expected to know
+about MCs (which would make parts of section 2 irrelevant) or for
+non-experts one would need a proper introduction to this area. The
+introduction also talks about model checking issues (CSL, etc) without
+explaining or motivating them, but only in section 4 there is some
+motivation for reachabikity checks in stochastic model checking, CSL
+etc. Particular anoying are pointers to later parts (see below, next
+section etc., e.g. p7,l1 and l20) and repetitions, e.g. ``It boils
+down...''  at the beginning of section 6, and at the end of section
+2. Furthermore, I would like to see a better balance between quite
+long proofs (which, I suspect, could be substentially shortened) and
+explanaitions/motivations which are often missing or are in the worng
+place, e.g. what is the aim/purpose of Jensen's method (p6), the
+Remark at the beginning of section 5 (p12) seems to be completely out
+of context and should be presented earlier,.....
+
+The sloppyness of the presentation, to the point of reaching a level
+which makes the paper un-readable is illustrated by a look at p6 (Thm
+2.5): The theorem is formulated extremly cumbersome which make it
+difficult to understand, in particular what are {\cal L}_ep and {\cal
+R}_ep - do the depend on K, \delta, or..., what's the difference
+bewteen p and \pi distributions, what does it mean that (according to
+footnote 2) ``\|.\| is an arbritary vector norm'' but that Thm 2.5
+``does not hold for an arbritray norm'', and so on and on and on.
+Important notions like ``aperiodic'' (Thm 2.5), ``absorbing'' (Def
+4.1.) are not defined fomally, the semantics if CSL is given in
+section 4 just by handwaving (though it is essential for the
+correctness of later statements), etc.
+ 
+----
